@@ -10,6 +10,10 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { refreshSession } from './src/lib/authApi';
 import { secureStorage } from './src/lib/secureStorage';
+import {
+  connectChatSocket,
+  disconnectChatSocket,
+} from './src/lib/socketClient';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { useAuthStore } from './src/stores/authStore';
 
@@ -67,6 +71,16 @@ function App() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       queryClientRef.current.clear();
+      disconnectChatSocket();
+    }
+  }, [status]);
+
+  // The chat socket connects only once actually authenticated, and is
+  // torn down immediately on logout (above) — it must never carry a
+  // session across an account switch or outlive a signed-out session.
+  useEffect(() => {
+    if (status === 'authenticated') {
+      connectChatSocket();
     }
   }, [status]);
 

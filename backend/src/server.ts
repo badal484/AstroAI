@@ -3,6 +3,7 @@ import { createApp } from './app';
 import { env } from './config/env';
 import { connectMongo, disconnectMongo } from './lib/mongo';
 import { connectRedis, disconnectRedis } from './lib/redis';
+import { initChatSocket } from './modules/chat';
 import { logger } from './shared/logger';
 
 async function main(): Promise<void> {
@@ -13,6 +14,9 @@ async function main(): Promise<void> {
   const server: Server = app.listen(env.PORT, () => {
     logger.info({ port: env.PORT, env: env.NODE_ENV }, 'Backend listening');
   });
+  // Socket.IO attaches to the same HTTP server rather than listening
+  // separately — one port, one process, per the modular-monolith mandate.
+  initChatSocket(server);
 
   registerShutdown(server);
 }

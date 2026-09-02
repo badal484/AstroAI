@@ -412,6 +412,94 @@ reliable than even a well-prompted model.
 
 ---
 
+## 5b. Chat System Architecture
+
+**Implemented** (`modules/chat/`). The first real caller of both the AI Gateway (§5) and the AI
+Astrologer layer (§5a) — conversations, messages, realtime delivery, and the mandated pipeline
+end to end:
+
+```
+user message (REST, idempotent on clientMessageId)
+        │
+        ▼
+persist user message (status=complete) + assistant placeholder (status=pending)
+return the user message to the caller immediately; generation continues in the background
+        │
+        ▼
+runGeneration(): status → streaming
+        │
+        ▼
+generateAstrologerResponse()   — intent → context → astrology data → AI Gateway → safety validation (§5a)
+        │
+        ▼
+persist COMPLETE content + aiSession to MongoDB FIRST (durable before any client sees it)
+        │
+        ▼
+replay the validated content over Socket.IO as word-chunks, then emit message:complete
+```
+
+**Two data models, not three:** `Conversation` (userId, birthProfileId, title, language,
+lastMessageAt) and `Message` (role, content, status: pending/streaming/complete/failed, intent,
+language, feedback, `aiSession`, `regeneratedFromMessageId`, `clientMessageId`). There is no
+separate "AI session" collection — CLAUDE.md's "AI sessions" requirement is satisfied by an
+`aiSession` subdocument embedded per assistant message (requestId, provider, model, usedFallback,
+safetyCorrectionApplied, latencyMs) rather than a parallel table, since a session's lifetime is
+identical to the one message it produced.
+
+**"Streaming" is chunked replay of a durable, validated response — not token streaming from the
+provider.** The astrologer layer (§5a) is deliberately non-streaming: the safety validator needs
+the complete response before anything reaches the user. So `runGeneration()` calls
+`generateAstrologerResponse()` (never `streamText`), writes the complete, validated content to
+Mongo with `status=complete` FIRST, and only then replays it to connected clients as small
+word-chunks over Socket.IO with a short pacing delay for a genuine "typing" feel. This ordering is
+also what makes **"handle app termination during streaming" safe by construction**: nothing is
+ever lost, because the full validated response is durable in the database before any client-facing
+delivery begins — a killed app simply reconnects and fetches the already-complete message over
+REST.
+
+**Realtime delivery is Socket.IO, supplementary to REST, never a replacement for it**
+(`chat.socket.ts`): one server instance attached to the same HTTP server as Express
+(`initChatSocket(httpServer)`), JWT-authenticated at the handshake with the same access token as
+REST, one room per conversation (`conversation:{id}`) with ownership verified at join time. The
+mobile client re-joins its room and invalidates/refetches the REST message list on every `connect`
+event — including reconnects after a network drop — so a client that missed events while
+disconnected always ends up consistent with the server's REST state rather than silently stale.
+
+**Idempotency via a client-generated `clientMessageId`** (CLAUDE.md §38/§45): mobile generates a
+UUID per send attempt; a MongoDB partial unique index on `{conversationId, clientMessageId}`
+(scoped to string-valued `clientMessageId` via `partialFilterExpression`, not a plain `sparse`
+index — see the note below) means a retried POST after a dropped response returns the original
+message rather than creating a duplicate.
+
+**Retry and regenerate are one operation, not two:** `chatService.regenerate()` branches on the
+target message's status — a `failed` message is reset in place (same id, so a client-side retry
+is invisible in history), a `complete` message instead creates a new assistant message that
+references the old one via `regeneratedFromMessageId`, preserving the original in history. Mobile
+exposes these as differently-labeled buttons (Retry / Regenerate) over the identical backend call.
+
+**Not charging for failed responses (CLAUDE.md §23):** honestly scoped to what actually exists —
+this codebase has no wallet module yet (§7 is still unimplemented), so there is nothing to charge
+in the first place. `chat.service.ts`'s `runGeneration()` carries an explicit comment at the exact
+point (immediately after reaching `status=COMPLETE`) where a future wallet debit must be inserted,
+and documents that it must never move earlier in the function nor be called from the failure catch
+block — the constraint is encoded structurally, ready for wallet integration, not deferred as a
+TODO with no anchor.
+
+**Mongoose pitfalls hit and fixed here** (relevant if extending this module): (1) the built-in
+`String` schema type's `required: true` rejects `''`, not just `null`/`undefined` — the assistant
+placeholder is created with `content: ''`, so `content` has `default: ''` but no `required`; (2) a
+`sparse: true` unique index does **not** exclude documents where the field is stored as BSON
+`null` (only truly-absent fields) — the `clientMessageId` unique index therefore uses
+`partialFilterExpression: { clientMessageId: { $type: 'string' } }` instead, which is correct
+regardless of whether the field ends up `null` or absent.
+
+**Suggested questions are static, not AI-generated:** `suggestedQuestions.ts` holds curated
+question lists per `SupportedLanguage`, split by whether a birth profile is linked — deliberately
+deterministic, instant, and free rather than an AI Gateway call for what is fundamentally
+placeholder UI content.
+
+---
+
 ## 6. Birth Profile & Location Architecture
 
 **Implemented.** `modules/birthProfiles/` owns a user's birth profiles (a user can hold several —
@@ -822,13 +910,23 @@ and TTL.
 
 ## 16. Testing Architecture
 
-- **Unit tests** (Jest/Vitest — **TBD**, pick one and use consistently across backend/admin):
+Backend uses **Vitest**; admin and mobile use Vitest/Jest respectively — settled, not TBD, as of
+the auth/birth-profile/AI Gateway/astrologer/chat modules (212 backend tests, all green).
+
+- **Unit tests:**
   pure domain logic first — pricing calculation, wallet ledger math, astrology engine functions,
   coupon validation rules, AI Gateway fallback selection logic. These require no DB/network and
   run fast.
-- **Integration tests:** service + repository against a real MongoDB (e.g. `mongodb-memory-
-server` or a dedicated test Atlas cluster — **TBD**) for modules with real query/transaction
-  behavior: wallet, payments, promotions, referrals.
+- **Integration tests:** service + repository against a real single-node-replica-set MongoDB
+  (`mongodb-memory-server`, started once per run by `tests/globalSetup.ts` — a standalone
+  `mongod` rejects the multi-document transactions auth/chat use, so it must be a replica set
+  even in-memory) with Redis mocked (`ioredis-mock`) — no external services required to run the
+  suite. Covers modules with real query/transaction behavior: chat (conversations/messages/
+  idempotency/regenerate/feedback), auth, birth profiles, astrology, and (once built) wallet,
+  payments, promotions, referrals. Beyond the automated suite, chat's realtime path (Socket.IO
+  delivery, not just the REST/service layer) has been additionally verified live against a real
+  ephemeral MongoDB + Redis and the actual `server.ts` process — automated coverage exercises the
+  service/REST layer directly and doesn't boot Socket.IO.
 - **Contract/adapter tests:** AI provider adapters and the Razorpay adapter are tested against
   recorded fixtures/mocks at the adapter boundary — CLAUDE.md §51 forbids faking success
   responses _in production code_, but test doubles at the adapter boundary in test code are

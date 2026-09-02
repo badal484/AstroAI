@@ -75,6 +75,14 @@ export function HomeScreen() {
 
       <TouchableOpacity
         style={styles.button}
+        onPress={() => navigation.navigate('ConversationList')}
+        accessibilityRole="button"
+      >
+        <Text style={styles.buttonText}>Chat with Astra</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={() => navigation.navigate('BirthProfileList')}
         accessibilityRole="button"
       >

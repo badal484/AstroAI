@@ -2,11 +2,15 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from '../screens/HomeScreen';
 import { BirthProfileFormScreen } from '../screens/birthProfiles/BirthProfileFormScreen';
 import { BirthProfileListScreen } from '../screens/birthProfiles/BirthProfileListScreen';
+import { ChatScreen } from '../screens/chat/ChatScreen';
+import { ConversationListScreen } from '../screens/chat/ConversationListScreen';
 
 export type AppStackParamList = {
   Home: undefined;
   BirthProfileList: undefined;
   BirthProfileForm: { profileId?: string };
+  ConversationList: undefined;
+  Chat: { conversationId: string; title?: string };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -39,6 +43,16 @@ export function AppStack() {
             ? 'Edit birth profile'
             : 'Add birth profile',
         })}
+      />
+      <Stack.Screen
+        name="ConversationList"
+        component={ConversationListScreen}
+        options={{ title: 'Chats' }}
+      />
+      <Stack.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={({ route }) => ({ title: route.params.title ?? 'Chat' })}
       />
     </Stack.Navigator>
   );
