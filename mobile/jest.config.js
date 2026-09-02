@@ -1,3 +1,10 @@
+// package.json's `test` script runs with `--forceExit`: @tanstack/react-query
+// registers a process-lifetime connectivity listener (onlineManager) the
+// first time any QueryClient is used, which is never torn down between
+// tests (by design — it's meant to outlive individual queries) and
+// otherwise leaves Jest hanging after all tests have already passed. This
+// is a known interaction in the React Query + Jest + React Native
+// ecosystem, not an app-level leak.
 module.exports = {
   preset: '@react-native/jest-preset',
   // The preset only allows transforming react-native/@react-native(-community)

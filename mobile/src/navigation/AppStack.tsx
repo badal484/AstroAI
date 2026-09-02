@@ -1,8 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { HomeScreen } from '../screens/HomeScreen';
+import { BirthProfileFormScreen } from '../screens/birthProfiles/BirthProfileFormScreen';
+import { BirthProfileListScreen } from '../screens/birthProfiles/BirthProfileListScreen';
 
 export type AppStackParamList = {
   Home: undefined;
+  BirthProfileList: undefined;
+  BirthProfileForm: { profileId?: string };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -21,6 +25,20 @@ export function AppStack() {
         name="Home"
         component={HomeScreen}
         options={{ title: 'AstroAI' }}
+      />
+      <Stack.Screen
+        name="BirthProfileList"
+        component={BirthProfileListScreen}
+        options={{ title: 'Birth profiles' }}
+      />
+      <Stack.Screen
+        name="BirthProfileForm"
+        component={BirthProfileFormScreen}
+        options={({ route }) => ({
+          title: route.params?.profileId
+            ? 'Edit birth profile'
+            : 'Add birth profile',
+        })}
       />
     </Stack.Navigator>
   );

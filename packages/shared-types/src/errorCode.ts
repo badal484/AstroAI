@@ -19,6 +19,12 @@ export const ErrorCode = {
   SESSION_REVOKED: 'SESSION_REVOKED',
   ACCOUNT_SUSPENDED: 'ACCOUNT_SUSPENDED',
   ACCOUNT_DELETED: 'ACCOUNT_DELETED',
+  // Birth profile / location / astrology-specific — distinct codes so the
+  // mobile app can show a targeted message instead of a generic error.
+  LOCATION_NOT_FOUND: 'LOCATION_NOT_FOUND',
+  LOCATION_PROVIDER_UNAVAILABLE: 'LOCATION_PROVIDER_UNAVAILABLE',
+  FUTURE_DATE_OF_BIRTH: 'FUTURE_DATE_OF_BIRTH',
+  ASTROLOGY_ENGINE_UNAVAILABLE: 'ASTROLOGY_ENGINE_UNAVAILABLE',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

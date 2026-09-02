@@ -65,6 +65,19 @@ const envSchema = z.object({
   ADMIN_SEED_EMAIL: z.string().email().optional(),
   ADMIN_SEED_PASSWORD: z.string().min(12).optional(),
   ADMIN_SEED_NAME: z.string().min(1).optional(),
+
+  // Location provider (birth place search/geocoding). Defaults to 'none' —
+  // a real provider must be explicitly configured; there is no fake
+  // fallback (CLAUDE.md §51). Timezone is never sourced from this provider:
+  // it's always computed from coordinates via the local IANA tz database.
+  LOCATION_PROVIDER: z.enum(['google', 'none']).default('none'),
+  GOOGLE_PLACES_API_KEY: z.string().optional(),
+
+  // Astrology calculation engine. Defaults to 'none' — a real ephemeris
+  // engine/provider must be explicitly configured; the app must never
+  // present fabricated astrology facts as real (CLAUDE.md §11/§51). See
+  // ARCHITECTURE.md §6 ("Open decision: build vs. integrate").
+  ASTROLOGY_ENGINE_PROVIDER: z.enum(['none']).default('none'),
 });
 
 export type Env = z.infer<typeof envSchema>;

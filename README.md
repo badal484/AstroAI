@@ -5,9 +5,13 @@ Next.js admin panel, sharing a `packages/shared-types` package. See
 [`CLAUDE.md`](CLAUDE.md) for the full product/engineering spec and
 [`ARCHITECTURE.md`](ARCHITECTURE.md) for the technical design.
 
-**Status:** foundation + authentication/authorization implemented (Google Sign-In for end users,
-email+password for admins, RBAC, sessions with refresh rotation). Other product features
-(astrology, chat, wallet, payments, ...) are not implemented yet.
+**Status:** foundation + authentication/authorization + birth profile & astrology domain
+implemented. Auth: Google Sign-In for end users, email+password for admins, RBAC, sessions with
+refresh rotation. Birth profiles: full validation (dates, times, timezones, ambiguous/manual
+locations), a pluggable `AstrologyEngine` abstraction with caching/persistence — no real
+calculation provider is wired in yet, so astrology endpoints return a clear `503` until one is
+configured (see docs/ENVIRONMENT.md's "Astrology engine"). Other product features (chat, wallet,
+payments, reports, ...) are not implemented yet.
 
 ## Prerequisites
 
@@ -59,9 +63,9 @@ npm run ios --workspace=mobile     # or: npm run android --workspace=mobile
 ## Tests
 
 ```bash
-npm run test --workspace=backend   # Vitest — auth routes/services, RBAC, sessions (in-memory MongoDB, no setup needed)
+npm run test --workspace=backend   # Vitest — auth, birth profiles, location, astrology (in-memory MongoDB, no setup needed)
 npm run test --workspace=admin     # Vitest — login form, API client refresh/retry, auth store
-npm run test --workspace=mobile    # Jest — auth store, API client refresh/retry, LoginScreen
+npm run test --workspace=mobile    # Jest — auth store, API client, LoginScreen, birth profile form, time helpers
 ```
 
 ## Checks

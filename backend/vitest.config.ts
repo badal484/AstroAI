@@ -19,6 +19,12 @@ export default defineConfig({
       JWT_ACCESS_SECRET: 'test-only-user-access-secret-not-a-real-secret-value',
       ADMIN_JWT_ACCESS_SECRET: 'test-only-admin-access-secret-not-a-real-secret-value',
       GOOGLE_CLIENT_ID: 'test-google-client-id.apps.googleusercontent.com',
+      // Exercises the "provider configured" path by default in integration
+      // tests (global fetch is mocked per-test where a real call would
+      // happen); the "not configured" default is unit-tested directly
+      // against `unconfiguredLocationProvider`/`unconfiguredEngine`.
+      LOCATION_PROVIDER: 'google',
+      GOOGLE_PLACES_API_KEY: 'test-only-not-a-real-key',
       // Never actually dialed in test mode (ioredis is aliased to
       // ioredis-mock below) — kept only because env validation requires it.
       REDIS_URL: 'redis://127.0.0.1:6379',

@@ -1756,6 +1756,28 @@ PODS:
     - ReactNativeDependencies
   - ReactNativeDependencies (0.87.1)
   - RecaptchaInterop (101.0.0)
+  - RNDateTimePicker (9.2.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNGoogleSignin (16.1.4):
     - GoogleSignIn (~> 9.0)
     - hermes-engine
@@ -1941,6 +1963,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
+  - "RNDateTimePicker (from `../../node_modules/@react-native-community/datetimepicker`)"
   - "RNGoogleSignin (from `../../node_modules/@react-native-google-signin/google-signin`)"
   - RNKeychain (from `../../node_modules/react-native-keychain`)
   - RNScreens (from `../../node_modules/react-native-screens`)
@@ -2134,6 +2157,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/react-native/ReactCommon"
   ReactNativeDependencies:
     :podspec: "../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
+  RNDateTimePicker:
+    :path: "../../node_modules/@react-native-community/datetimepicker"
   RNGoogleSignin:
     :path: "../../node_modules/@react-native-google-signin/google-signin"
   RNKeychain:
@@ -2242,6 +2267,7 @@ SPEC CHECKSUMS:
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  RNDateTimePicker: 2971f91a94cb78f099894168378d15c58f4da22f
   RNGoogleSignin: ac755be54b6da943c23d8e48cc0b7e7e155df2d0
   RNKeychain: 551d42b0ef53426f82551a0cc961cfa10ad33afa
   RNScreens: 0135deb65b65d207ee6294d0baf06681e1071d93

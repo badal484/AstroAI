@@ -32,13 +32,47 @@ plain local connection strings (e.g. `mongodb://localhost:27017`), not secrets.
 | `ADMIN_SEED_EMAIL`              | no\*     | —             | Used only by `npm run seed:admin` to create the first super-admin account. Not read by the server.                                                                                                                                                      |
 | `ADMIN_SEED_PASSWORD`           | no\*     | —             | ditto — min 12 characters.                                                                                                                                                                                                                              |
 | `ADMIN_SEED_NAME`               | no\*     | —             | ditto.                                                                                                                                                                                                                                                  |
+| `LOCATION_PROVIDER`             | no       | `none`        | `none` or `google`. `none` means birth-location search returns a clear "not configured" error (the mobile app falls back to manual location entry) — see "Location provider" below.                                                                     |
+| `GOOGLE_PLACES_API_KEY`         | no\*\*   | —             | Google Geocoding API key. Required only when `LOCATION_PROVIDER=google`.                                                                                                                                                                                |
+| `ASTROLOGY_ENGINE_PROVIDER`     | no       | `none`        | Only `none` exists today. Astrology endpoints return a clear 503 until a real engine is wired in — see "Astrology engine" below. Never set to fake/mock a provider in this codebase (CLAUDE.md §51).                                                    |
 
 \* Required when actually _running_ `npm run seed:admin` — the script itself validates and exits
 with a clear error if any of the three are missing; the main server never reads them.
+\*\* Required only when `LOCATION_PROVIDER=google`; validated at request time by that provider, not
+at server startup.
 
 Validated by `backend/src/config/env.ts` (Zod). Not yet present (added when their owning module is
 implemented, per ARCHITECTURE.md's open decisions): Razorpay keys, other AI provider API keys,
 push/email/SMS provider credentials.
+
+### Location provider
+
+Birth-place search (`GET /api/v1/locations/search`) and place resolution go through a pluggable
+`LocationProviderAdapter` (`backend/src/modules/location/location.provider.types.ts`). With
+`LOCATION_PROVIDER=none` (the default), search requests get a `503
+LOCATION_PROVIDER_UNAVAILABLE` — deliberately, rather than a fake/empty result (CLAUDE.md §51) —
+and the mobile app's birth profile form falls back to manual location entry. Set
+`LOCATION_PROVIDER=google` and a `GOOGLE_PLACES_API_KEY` (Google Cloud Console → enable the
+Geocoding API) to enable real search and ambiguous-location disambiguation.
+
+Timezone is **never** taken from the location provider or from client input — it's always
+computed server-side from the resolved coordinates using the local IANA timezone-boundary
+dataset (`geo-tz`, comprehensive/historical variant), so it stays correct even for manually
+entered locations and pre-1970 birth dates with historical timezone boundaries.
+
+### Astrology engine
+
+The astrology calculation engine (`AstrologyEngine` interface,
+`backend/src/modules/astrology/engine/astrologyEngine.types.ts`) is the sole authoritative
+source of planetary positions, houses, ascendant, nakshatra, dasha, antardasha, yogas, transits
+and compatibility scores — the AI layer is never allowed to compute these itself (CLAUDE.md §11).
+
+No real engine ships in this codebase yet (`ASTROLOGY_ENGINE_PROVIDER=none` is the only value
+today) — see ARCHITECTURE.md §6's open build-vs-integrate decision. Every astrology endpoint
+returns a clear `503 ASTROLOGY_ENGINE_UNAVAILABLE` in this state. To wire in a real engine (an
+in-house ephemeris binding or a licensed Vedic astrology API), implement `AstrologyEngine` and
+register it in `modules/astrology/engine/registry.ts` — no caller (astrology.service, and later
+chat/reports/horoscope) needs to change.
 
 ### Creating the first admin account
 

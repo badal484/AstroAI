@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { authRouter } from '../../modules/auth';
 import { adminRouter } from '../../modules/admin';
+import { locationRouter } from '../../modules/location';
+import { birthProfileRouter } from '../../modules/birthProfiles';
+import { astrologyRouter } from '../../modules/astrology';
 import { healthRouter } from './health.routes';
 
 /**
@@ -12,4 +15,7 @@ export const v1Router = Router();
 
 v1Router.use(healthRouter);
 v1Router.use(authRouter);
+v1Router.use(locationRouter);
+v1Router.use(birthProfileRouter);
+v1Router.use(astrologyRouter);
 v1Router.use('/admin', adminRouter);

@@ -304,36 +304,99 @@ question without the calculated facts already attached, enforcing CLAUDE.md §11
 
 ---
 
-## 6. Astrology Engine Architecture
+## 6. Birth Profile & Location Architecture
 
-Deterministic, authoritative, **not an LLM call** — a pure calculation module (or, if a
-third-party ephemeris/astrology API is used, a thin server-side adapter around it — **TBD**,
-see Open Decisions: build vs. integrate).
+**Implemented.** `modules/birthProfiles/` owns a user's birth profiles (a user can hold several —
+themselves, family, a partner for compatibility). Civil date (`dateOfBirth`) and time
+(`birthTime`) are stored as plain strings (`YYYY-MM-DD`, 24-hour `HH:mm`), never a `Date` object —
+a `Date` would force an implicit reinterpretation that can silently shift the calendar day; both
+are interpreted against the birth location's own IANA timezone wherever they're used, never the
+server's.
+
+**Birth time confidence** (`exact` / `approximate` / `unknown`, CLAUDE.md §20) is a required,
+first-class field enforced by a cross-field Zod rule: a birth time is required for `exact`/
+`approximate` and forbidden for `unknown`. The wire format is 24-hour `HH:mm` only — the classic
+12 AM/12 PM mixup is eliminated at the API boundary rather than handled by parsing an ambiguous
+string; the mobile time picker is what's responsible for producing an unambiguous value.
+
+**Date/time validation** (`birthProfiles/birthDateTime.ts`): a Zod regex checks shape at the
+route layer; `assertValidCivilDate` then checks real calendar validity (rejects Feb 30, month 13,
+...) via Luxon; `assertNotFutureDateOfBirth` is the authoritative "not in the future" check,
+evaluated in the **birth location's** timezone (resolved first) rather than the server's or
+client's — a birth "today" is never wrongly rejected across a UTC day boundary, and vice versa.
+
+**Location normalization** (`modules/location/`) is a pluggable `LocationProviderAdapter`
+(mirroring the AI Gateway's and auth's adapter-behind-an-interface shape), defaulting to an
+`unconfiguredLocationProvider` that returns a clear `503` rather than a fake result when no real
+geocoder is configured (`LOCATION_PROVIDER=none`, CLAUDE.md §51) — a birth profile can still be
+created via a manual-entry fallback in that case. **Timezone is never sourced from the location
+provider or trusted from client input**: it's always computed server-side from resolved
+coordinates using the local IANA tz-boundary dataset (`geo-tz`, comprehensive/historical
+variant), so historical timezone-boundary changes (pre-1970 births included) and manually-entered
+locations both resolve correctly. Ambiguous locations (e.g. "Springfield") are handled
+structurally: search returns every matching candidate and the client must have the user pick one
+(a `placeId`) before a birth profile can be created from it — there's no silent best-guess.
+Geocoding results are cached in Redis (30-day TTL — a fixed query/place id is effectively
+static).
+
+**Decoupling from astrology:** editing or deleting a birth profile must invalidate any stored
+chart, but `birthProfiles` doesn't call into `astrology` directly — it emits `birthProfile.changed`
+/`birthProfile.deleted` on an in-process event bus (`shared/eventBus.ts`), and `astrology.service`
+subscribes to invalidate its own persisted data. Neither module needs to know about the other's
+existence beyond `astrology` reading birth profile facts through `birthProfiles`' public service
+(never its repository/model).
+
+## 6a. Astrology Engine Architecture
+
+**Implemented as an abstraction; no real calculation provider ships in this codebase.**
+Deterministic, authoritative, **not an LLM call**.
 
 ```
 modules/astrology/
-├── astrology.service.ts     public API: getChart(), getDasha(), getTransits(), getCompatibilityScore(), ...
-├── engine/                  pure calculation logic (or adapter to a licensed ephemeris library/API)
-├── astrology.repository.ts  persisted chart snapshots (cache of computed charts per birthProfile)
-└── astrology.types.ts       Chart, PlanetPosition, House, Nakshatra, Dasha, Yoga, Transit, CompatibilityScore
+├── astrology.service.ts     public API: getChart(), getTransits(), getCompatibility(), invalidateForBirthProfile()
+├── astrology.controller.ts / astrology.routes.ts   /astrology/chart|transits|compatibility
+├── engine/
+│   ├── astrologyEngine.types.ts   the AstrologyEngine interface + AstrologyEngineInput/ComputedNatalChart
+│   ├── unconfiguredEngine.ts      default when no provider is configured — throws a clear 503, never fabricates data
+│   └── registry.ts                env-selected current engine + CURRENT_CALCULATION_VERSION
+├── astrology.model.ts / astrology.repository.ts   persisted chart (per birthProfileId) + compatibility (per pair) snapshots
+└── astrology.types.ts       birth-profile→engine-input mapping, precision-downgrade policy, doc→API-shape mapping
 ```
+
+**The `AstrologyEngine` interface** is the sole seam a real engine plugs into —
+`computeChart(input)` (ascendant, planet positions, houses, moon nakshatra, dasha/antardasha
+tree, yogas — everything static for a fixed birth input), `computeTransits(input, atDate)`
+(time-varying, not persisted), `computeCompatibility(inputA, inputB)`. `astrology.service.ts`
+owns all caching/persistence/versioning; an engine implementation is a pure calculation function.
+
+**Why unconfigured by default, not a hand-rolled implementation:** Vedic sidereal calculations
+(Lahiri ayanamsa), Vimshottari dasha/antardasha math and yoga detection are a specialized,
+licensable body of work most commercial astrology products buy rather than build — hand-rolling
+an approximation here and presenting it as real would itself violate CLAUDE.md §51 ("do not
+hardcode fake astrology results as if they were real"), and would silently be _wrong_ for a Vedic
+product specifically if built on a typical (tropical/Western) open-source ephemeris library. The
+honest, requested deliverable is the complete seam — interface, registry, caching, persistence,
+precision policy, tests against a double — with a clearly-isolated "not configured" state
+(`ASTROLOGY_ENGINE_PROVIDER=none`, every endpoint returns `503 ASTROLOGY_ENGINE_UNAVAILABLE`)
+until a real provider (in-house ephemeris binding, or a licensed third-party Vedic astrology API)
+is chosen and wired into `engine/registry.ts`. See Open Decision #1.
 
 **Design decisions:**
 
-- Computed charts are cached/persisted keyed by `birthProfileId` + calculation version, so
-  results are stable and cheap to re-read; a version bump (engine correction/upgrade) can force
-  recomputation without silently changing historical report content already delivered to users.
+- Computed natal charts are persisted (Mongo) keyed by `birthProfileId`, stamped with
+  `calculationVersion`; `getChart` recomputes only when missing or stamped with an older version
+  than `CURRENT_CALCULATION_VERSION` (bumped on an engine correction/upgrade) — results are
+  stable and cheap to re-read, and a version bump doesn't silently change historical report
+  content already delivered to users. Transits are cached in Redis only (12h TTL) — they're a
+  moving daily snapshot, not worth permanently persisting. Compatibility results are persisted
+  per unordered profile pair, same versioning rule.
 - The service returns typed, structured facts only — no natural-language text. Interpretation
   in natural language is entirely the AI Gateway's job, fed these facts (CLAUDE.md §11).
-- Unknown/approximate birth time (CLAUDE.md §20) is a first-class input: the engine returns a
-  `confidence`/`precision` flag per fact set (e.g. house cusps and ascendant are unreliable
-  without exact time) so downstream callers (AI, reports) can express appropriate uncertainty
-  rather than presenting a guess as fact.
-
-**Open decision (flagged as a risk below):** whether calculations are implemented in-house
-(e.g. via a Swiss Ephemeris binding) or sourced from a licensed third-party astrology
-calculation API. This materially affects the `engine/` internals but not the module's public
-interface, so it can be decided/swapped without touching callers.
+- Unknown/approximate birth time (CLAUDE.md §20) is enforced centrally, not just trusted per
+  engine: `astrology.types.ts`'s precision-downgrade policy forces ascendant/house `precision` to
+  `unavailable` (unknown time) or `low_confidence` (approximate time) regardless of what a given
+  engine implementation returns, so downstream callers (AI, reports) can never present a guess as
+  fact even if a future engine forgets to flag it itself.
 
 ---
 
@@ -707,9 +770,11 @@ server` or a dedicated test Atlas cluster — **TBD**) for modules with real que
 **Open product/technical decisions (block or shape near-term implementation):**
 
 1. **Astrology calculation source** — build in-house (e.g. Swiss Ephemeris binding) vs. license
-   a third-party astrology API. Affects `modules/astrology/engine` internals, cost, accuracy, and
-   latency; does not affect its public interface, so it can be deferred but should be decided
-   before report/chat features are built on top of it.
+   a third-party astrology API. The `AstrologyEngine` interface, registry, caching/persistence
+   and precision policy are implemented (see §6a); only the actual calculation provider is
+   still open. Affects `modules/astrology/engine` internals, cost, accuracy, and latency; does
+   not affect the module's public interface, so it can be deferred but should be decided before
+   report/chat features are built on top of it (every astrology endpoint returns `503` until then).
 2. ~~**Primary auth method**~~ **Resolved:** Google Sign-In first (implemented — see §14),
    phone/OTP planned as a second provider on the same `AuthProviderAdapter` registry once an
    SMS/OTP vendor is chosen (still open, see #3-adjacent).
@@ -761,7 +826,12 @@ types` + three apps. Affects initial scaffold structure (Phase 2 of implementati
 
 **Dependencies implementation will need before certain modules can be completed:**
 
-- Astrology module depends on Decision #1.
+- Astrology module's abstraction/caching/persistence layer is fully implemented and tested
+  against a test-double engine; it depends on Decision #1 (a real calculation provider) before
+  it can return genuine chart data — see docs/ENVIRONMENT.md's "Astrology engine".
+- Location search/geocoding (birth profile creation) works with manual entry by default;
+  real search/disambiguation needs `LOCATION_PROVIDER=google` + a Google Geocoding API key — see
+  docs/ENVIRONMENT.md's "Location provider".
 - Auth module's Google provider is fully implemented but needs a real Google Cloud OAuth client
   (Web + iOS + Android client IDs) before it can be exercised beyond mocked tests — see
   docs/ENVIRONMENT.md's "Google Sign-In setup". The phone/OTP provider additionally needs an

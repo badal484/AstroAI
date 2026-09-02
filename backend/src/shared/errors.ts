@@ -128,3 +128,49 @@ export class AccountDeletedError extends AppError {
     super(message);
   }
 }
+
+// --- Birth profile / location / astrology-specific errors ---
+
+export class LocationNotFoundError extends AppError {
+  readonly code = ErrorCode.LOCATION_NOT_FOUND;
+  readonly httpStatus = 404;
+
+  constructor(message = 'Location not found') {
+    super(message);
+  }
+}
+
+/** The location provider is not configured (no API key) — a clearly
+ * isolated integration seam, not a fake/empty result (CLAUDE.md §51). */
+export class LocationProviderUnavailableError extends AppError {
+  readonly code = ErrorCode.LOCATION_PROVIDER_UNAVAILABLE;
+  readonly httpStatus = 503;
+
+  constructor(
+    message = 'Location search is not configured on this server yet. Enter the location manually instead.',
+  ) {
+    super(message);
+  }
+}
+
+export class FutureDateOfBirthError extends AppError {
+  readonly code = ErrorCode.FUTURE_DATE_OF_BIRTH;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Date of birth cannot be in the future') {
+    super(message);
+  }
+}
+
+/** The astrology calculation engine is not configured — never fabricated,
+ * per CLAUDE.md §11/§51 ("do not hardcode fake astrology results"). */
+export class AstrologyEngineUnavailableError extends AppError {
+  readonly code = ErrorCode.ASTROLOGY_ENGINE_UNAVAILABLE;
+  readonly httpStatus = 503;
+
+  constructor(
+    message = 'Astrology calculations are not available yet — the calculation engine is not configured on this server.',
+  ) {
+    super(message);
+  }
+}

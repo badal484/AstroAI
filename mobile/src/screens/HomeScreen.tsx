@@ -1,10 +1,16 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { deleteAccount, logoutSession } from '../lib/authApi';
 import { secureStorage } from '../lib/secureStorage';
+import type { AppStackParamList } from '../navigation/AppStack';
 import { useAuthStore } from '../stores/authStore';
 
+type Nav = NativeStackNavigationProp<AppStackParamList, 'Home'>;
+
 export function HomeScreen() {
+  const navigation = useNavigation<Nav>();
   const user = useAuthStore(state => state.user);
   const setUnauthenticated = useAuthStore(state => state.setUnauthenticated);
   const [isBusy, setIsBusy] = useState(false);
@@ -66,6 +72,14 @@ export function HomeScreen() {
         Welcome{user?.name ? `, ${user.name}` : ''}
       </Text>
       <Text style={styles.subtitle}>{user?.email ?? 'No email on file'}</Text>
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('BirthProfileList')}
+        accessibilityRole="button"
+      >
+        <Text style={styles.buttonText}>Birth profiles</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
