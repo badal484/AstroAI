@@ -1,0 +1,29 @@
+{
+  "name": "astroai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI Astrology Platform monorepo",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "admin",
+    "mobile"
+  ],
+  "scripts": {
+    "typecheck": "npm run typecheck --workspace=packages/shared-types && npm run typecheck --workspace=backend && npm run typecheck --workspace=admin && npm run typecheck --workspace=mobile",
+    "lint": "npm run lint --workspace=packages/shared-types && npm run lint --workspace=backend && npm run lint --workspace=admin && npm run lint --workspace=mobile",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build:shared-types": "npm run build --workspace=packages/shared-types"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "eslint": "^9.9.1",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.3.0"
+  }
+}

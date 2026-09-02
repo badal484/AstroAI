@@ -1,0 +1,28 @@
+// Resolve via Node rather than a hardcoded relative path: this is an npm
+// workspaces monorepo, so @react-native/gradle-plugin is hoisted to the
+// repo root's node_modules, not this app's own node_modules. The
+// pluginManagement {} block must be the very first statement in a Gradle
+// settings script, so the resolution is inlined here rather than assigned
+// to a variable first.
+pluginManagement {
+    includeBuild(
+        new File(
+            providers.exec {
+                workingDir(rootDir)
+                commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json')")
+            }.standardOutput.asText.get().trim()
+        ).getParentFile().absolutePath
+    )
+}
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
+rootProject.name = 'AstroAI'
+include ':app'
+includeBuild(
+    new File(
+        providers.exec {
+            workingDir(rootDir)
+            commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json')")
+        }.standardOutput.asText.get().trim()
+    ).getParentFile().absolutePath
+)

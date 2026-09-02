@@ -39,6 +39,7 @@ Screens never call `fetch`/`axios` directly and never contain business rules —
 belong to the backend, per CLAUDE.md §6. The mobile app is a thin, presentation-focused client.
 
 **State:**
+
 - Server state (chat messages, wallet balance, reports, profile) → **TanStack Query**, with
   query keys namespaced by user + resource, and cache invalidation driven by mutation results
   and Socket.IO events (see Realtime below).
@@ -56,11 +57,11 @@ to a single linking config so both entry paths land on the same screens (CLAUDE.
 
 **Realtime:** Socket.IO client, one connection per authenticated session, reconnect-with-backoff.
 Used for: streaming chat tokens, voice session state, live wallet balance updates, report-ready
-push. The socket is a *supplement* to TanStack Query cache invalidation, not a replacement for
+push. The socket is a _supplement_ to TanStack Query cache invalidation, not a replacement for
 REST reads — on reconnect after backgrounding, the client re-fetches via query invalidation
 rather than trusting missed socket events.
 
-**Forms & validation:** React Hook Form + Zod resolvers, using the *same* Zod schemas from
+**Forms & validation:** React Hook Form + Zod resolvers, using the _same_ Zod schemas from
 `packages/shared-types` that the backend validates against, so client and server never drift.
 
 **Styling:** NativeWind (Tailwind-for-RN) chosen over ad-hoc StyleSheet to keep spacing/color/
@@ -137,7 +138,7 @@ Each `modules/<name>/` follows: `<name>.routes.ts`, `<name>.controller.ts`, `<na
 `<name>.repository.ts`, `<name>.model.ts` (Mongoose schema), `<name>.types.ts`,
 `<name>.validation.ts` (Zod), `index.ts` (public exports only).
 
-**Cross-module communication:** modules call each other's *service* layer directly (in-process
+**Cross-module communication:** modules call each other's _service_ layer directly (in-process
 function calls — this is a monolith, not message passing), imported only via the target
 module's `index.ts`. Modules must not reach into another module's repository or model directly.
 Where true decoupling matters (e.g. wallet debited → notification fired), an in-process event
@@ -148,6 +149,7 @@ know notifications exist (CLAUDE.md §29 event-driven notifications).
 adds `/api/v2/...` alongside, not in place of, v1 (CLAUDE.md §37).
 
 **Response envelope (fixed shape, applies to every endpoint):**
+
 ```ts
 // success
 { success: true, data: T, requestId: string }
@@ -188,6 +190,7 @@ backend, calling the same `/api/v1/...` backend over HTTPS with admin-scoped JWT
 with end-user tokens — separate admin auth, see §14).
 
 **Structure:**
+
 ```
 admin/src/
 ├── app/
@@ -229,6 +232,7 @@ never the source of truth), `pricingConfigs` (versioned), `payments`, `reports`,
 `aiProviderConfigs`, `aiUsageEvents`.
 
 **Rules (CLAUDE.md §47):**
+
 - Every collection queried by non-`_id` fields gets an explicit compound index matching real
   query patterns (e.g. `messages: { conversationId, createdAt }`).
 - No unbounded arrays (e.g. messages are their own collection referencing `conversationId`,
@@ -315,6 +319,7 @@ modules/astrology/
 ```
 
 **Design decisions:**
+
 - Computed charts are cached/persisted keyed by `birthProfileId` + calculation version, so
   results are stable and cheap to re-read; a version bump (engine correction/upgrade) can force
   recomputation without silently changing historical report content already delivered to users.
@@ -343,6 +348,7 @@ modules/wallet/
 ```
 
 Every credit/debit (CLAUDE.md §24):
+
 1. Validates an idempotency key (caller-supplied, e.g. `payment:{paymentId}`,
    `chat:{messageId}`, `voice:{sessionId}:{tick}`) against a uniqueness index on
    `walletTransactions` — a duplicate key short-circuits and returns the original result instead
@@ -399,12 +405,13 @@ modules/payments/
 └── payment.model.ts          status machine: created → attempted → paid/failed → refunded/partially_refunded
 ```
 
-**Authority model (CLAUDE.md §27):** client-reported payment success is *never* trusted to
+**Authority model (CLAUDE.md §27):** client-reported payment success is _never_ trusted to
 credit a wallet or unlock a report. Only two things move a payment to `paid`:
+
 1. Razorpay **webhook** (`payment.captured`/`order.paid`), signature-verified server-side using
    the Razorpay webhook secret, or
 2. A server-side verification call back to Razorpay if the client returns a payment ID (used
-   only to *check* status, never to trust the client's claim of success).
+   only to _check_ status, never to trust the client's claim of success).
 
 **Idempotency:** the Razorpay `event.id` (or `payment.id` for direct verification) is stored with
 a uniqueness constraint; a re-delivered webhook (retry, duplicate) is detected and a no-op
@@ -433,6 +440,7 @@ modules/voice/
 
 A voice session is billed incrementally, not as one lump sum at the end (protecting both the
 user from a runaway charge and the business from an unbillable free session):
+
 - On session start: check balance covers at least the configured minimum charge / free initial
   duration; reserve funds.
 - On a server-driven heartbeat tick (interval matches the configured billing unit —
@@ -472,9 +480,9 @@ modules/notifications/
 ```
 
 Emitting modules never call a channel directly and never know delivery details — they emit
-`{ eventType, userId, payload }`; the notifications module resolves *whether* to send (respecting
-preferences/quiet hours/frequency caps/opt-out, CLAUDE.md §29), *what* to send (templated,
-localized per user's language, CLAUDE.md §18), and *how* (channel selection/fallback).
+`{ eventType, userId, payload }`; the notifications module resolves _whether_ to send (respecting
+preferences/quiet hours/frequency caps/opt-out, CLAUDE.md §29), _what_ to send (templated,
+localized per user's language, CLAUDE.md §18), and _how_ (channel selection/fallback).
 
 All actual sends happen via BullMQ jobs (retryable, observable, per CLAUDE.md §42), not
 synchronously inside the request that triggered the event — a notification failure must never
@@ -538,6 +546,7 @@ events reference `userId` but do not duplicate profile/chat content into the eve
 **Two entirely separate auth systems**, not shared tokens/roles:
 
 **End-user auth (mobile):**
+
 - JWT access token (short-lived) + refresh token (longer-lived, rotated on use, stored server-
   side hashed to allow revocation), issued by `modules/auth`.
 - Mobile stores tokens in encrypted MMKV, never in plain AsyncStorage (CLAUDE.md §36).
@@ -547,6 +556,7 @@ events reference `userId` but do not duplicate profile/chat content into the eve
   CLAUDE.md §46 (auth expiration handling).
 
 **Admin auth (admin panel):**
+
 - Separate `adminUsers` collection, separate JWT audience/signing context from end-user tokens
   (so an end-user token can never be replayed against admin routes and vice versa).
 - Backed by RBAC: `adminRoles` define named roles (super admin, operations, support, finance,
@@ -599,11 +609,11 @@ so the two systems cannot cross-authenticate.
   coupon validation rules, AI Gateway fallback selection logic. These require no DB/network and
   run fast.
 - **Integration tests:** service + repository against a real MongoDB (e.g. `mongodb-memory-
-  server` or a dedicated test Atlas cluster — **TBD**) for modules with real query/transaction
+server` or a dedicated test Atlas cluster — **TBD**) for modules with real query/transaction
   behavior: wallet, payments, promotions, referrals.
 - **Contract/adapter tests:** AI provider adapters and the Razorpay adapter are tested against
   recorded fixtures/mocks at the adapter boundary — CLAUDE.md §51 forbids faking success
-  responses *in production code*, but test doubles at the adapter boundary in test code are
+  responses _in production code_, but test doubles at the adapter boundary in test code are
   correct practice and not the same thing.
 - **API/e2e tests (backend):** supertest-style tests hitting `/api/v1/...` for auth, wallet,
   payments (webhook simulation with valid/invalid signatures, duplicate delivery), pricing
@@ -659,7 +669,7 @@ so the two systems cannot cross-authenticate.
    yet; each channel is an adapter so the choice is isolated, but one must be picked before
    notifications can be implemented end-to-end.
 4. **Monorepo tooling** — plain npm/yarn/pnpm workspaces vs. Turborepo/Nx for `packages/shared-
-   types` + three apps. Affects initial scaffold structure (Phase 2 of implementation).
+types` + three apps. Affects initial scaffold structure (Phase 2 of implementation).
 5. **Hosting/deployment target** — determines secrets management, whether BullMQ workers are
    separate processes from day one, and how Socket.IO scaling is configured.
 6. **Design token source of truth** for shared visual language between mobile (NativeWind) and
@@ -699,11 +709,12 @@ so the two systems cannot cross-authenticate.
   pricing module is built, not discovered in production.
 
 **Dependencies implementation will need before certain modules can be completed:**
+
 - Astrology module depends on Decision #1.
 - Auth module depends on Decision #2 and an SMS/OTP provider if phone-based.
 - Notifications module depends on Decision #3.
 - Payments module depends on Razorpay account/credentials (test mode acceptable for development,
-  per "do not use fake production secrets" — real Razorpay *test* keys are required, not fabricated
+  per "do not use fake production secrets" — real Razorpay _test_ keys are required, not fabricated
   ones).
 - AI Gateway depends on at least one real provider API key (test/dev tier) to be usable beyond
   interface stubs — CLAUDE.md §51 forbids faking provider responses in production code, so the

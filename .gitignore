@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Env files (never commit real values)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Testing
+coverage/
+
+# React Native / Mobile
+mobile/ios/Pods/
+mobile/ios/build/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/local.properties
+mobile/.metro-health-check*
+*.jsbundle
+mobile/ios/*.xcworkspace/xcuserdata/
+
+# Local data used for foundation verification only
+/.localdata/

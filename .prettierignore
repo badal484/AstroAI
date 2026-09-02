@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+.next
+out
+coverage
+mobile/ios
+mobile/android
+*.lock
+package-lock.json
+next-env.d.ts

@@ -1,1 +1,65 @@
 # AstroAI
+
+AI astrology platform: a React Native mobile app, an Express + TypeScript backend, and a
+Next.js admin panel, sharing a `packages/shared-types` package. See
+[`CLAUDE.md`](CLAUDE.md) for the full product/engineering spec and
+[`ARCHITECTURE.md`](ARCHITECTURE.md) for the technical design.
+
+**Status:** foundation scaffold only. No product features are implemented yet.
+
+## Prerequisites
+
+- Node.js >= 22.11 (see `.nvmrc`)
+- npm >= 10 (workspaces)
+- MongoDB (local `mongod` or Atlas) and Redis, for running the backend
+- Xcode + CocoaPods (iOS) and/or Android Studio (Android), for running the mobile app
+
+## Setup
+
+```bash
+npm install
+npm run build:shared-types   # other workspaces resolve @astroai/shared-types via its dist/ output
+```
+
+Copy each app's environment template and fill in local values — see
+[`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) for what every variable means:
+
+```bash
+cp backend/.env.example backend/.env
+cp admin/.env.example admin/.env.local
+```
+
+Mobile has no `.env` file — see `mobile/src/config/env.ts` and `docs/ENVIRONMENT.md`.
+
+## Running each app
+
+```bash
+npm run dev --workspace=backend    # http://localhost:4000, needs MongoDB + Redis running
+npm run dev --workspace=admin      # http://localhost:3000
+npm run ios --workspace=mobile     # or: npm run android --workspace=mobile
+```
+
+## Checks
+
+Run from the repo root to check every workspace:
+
+```bash
+npm run typecheck
+npm run lint
+npm run format:check
+```
+
+## Repository layout
+
+```
+AstroAI/
+├── backend/            Express + TypeScript modular monolith (see ARCHITECTURE.md §2)
+├── admin/               Next.js admin panel (see ARCHITECTURE.md §3)
+├── mobile/              React Native CLI app (see ARCHITECTURE.md §1)
+├── packages/
+│   └── shared-types/    Cross-cutting types/Zod schemas shared across all three apps
+├── docs/
+│   └── ENVIRONMENT.md   Every environment variable, per app
+├── CLAUDE.md             Product/engineering rules
+└── ARCHITECTURE.md       Technical design and open decisions
+```
