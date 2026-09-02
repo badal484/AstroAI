@@ -48,3 +48,6 @@ mobile/ios/*.xcworkspace/xcuserdata/
 
 # Local data used for foundation verification only
 /.localdata/
+
+# Claude Code session-local tooling state (not part of the project)
+/.claude/
