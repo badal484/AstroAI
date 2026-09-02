@@ -28,6 +28,12 @@ export default [
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/consistent-type-imports': 'error',
+      // `void somePromise()` as a statement is the standard, explicit way
+      // to mark a fire-and-forget async call as intentional (e.g. an
+      // onPress handler calling an async function) — RN's base config
+      // disables the void operator outright, which would otherwise force
+      // noisier wrapper closures for the same intent.
+      'no-void': ['error', { allowAsStatement: true }],
     },
   },
 ];

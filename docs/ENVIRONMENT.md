@@ -11,30 +11,63 @@ plain local connection strings (e.g. `mongodb://localhost:27017`), not secrets.
 
 ## Backend (`backend/.env`, template at `backend/.env.example`)
 
-| Variable                  | Required | Default       | Description                                                                                                                                                              |
-| ------------------------- | -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NODE_ENV`                | no       | `development` | One of `development`, `test`, `staging`, `production`.                                                                                                                   |
-| `PORT`                    | no       | `4000`        | Port the Express server listens on.                                                                                                                                      |
-| `LOG_LEVEL`               | no       | `info`        | pino log level: `fatal`, `error`, `warn`, `info`, `debug`, `trace`.                                                                                                      |
-| `MONGODB_URI`             | **yes**  | —             | MongoDB Atlas (or local `mongod`) connection string.                                                                                                                     |
-| `REDIS_URL`               | **yes**  | —             | Redis connection string (caching, rate limiting, BullMQ, Socket.IO adapter).                                                                                             |
-| `CORS_ALLOWED_ORIGINS`    | no       | `` (empty)    | Comma-separated list of origins allowed to call the API with credentials (the admin panel's URL(s)). Mobile traffic is not browser-originated and is unaffected by CORS. |
-| `RATE_LIMIT_WINDOW_MS`    | no       | `60000`       | Default rate-limit window, in milliseconds.                                                                                                                              |
-| `RATE_LIMIT_MAX_REQUESTS` | no       | `100`         | Default max requests per window per client.                                                                                                                              |
+| Variable                        | Required | Default       | Description                                                                                                                                                                                                                                             |
+| ------------------------------- | -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                      | no       | `development` | One of `development`, `test`, `staging`, `production`.                                                                                                                                                                                                  |
+| `PORT`                          | no       | `4000`        | Port the Express server listens on.                                                                                                                                                                                                                     |
+| `LOG_LEVEL`                     | no       | `info`        | pino log level: `fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`.                                                                                                                                                                           |
+| `MONGODB_URI`                   | **yes**  | —             | MongoDB Atlas (or local `mongod`) connection string. **Must be a replica set** (Atlas clusters always are) — auth uses multi-document transactions, which a standalone `mongod` rejects. See the comment in `.env.example` for running one locally.     |
+| `REDIS_URL`                     | **yes**  | —             | Redis connection string (caching, rate limiting, BullMQ, Socket.IO adapter).                                                                                                                                                                            |
+| `CORS_ALLOWED_ORIGINS`          | no       | `` (empty)    | Comma-separated list of origins allowed to call the API with credentials (the admin panel's URL(s)). Mobile traffic is not browser-originated and is unaffected by CORS.                                                                                |
+| `RATE_LIMIT_WINDOW_MS`          | no       | `60000`       | Default rate-limit window, in milliseconds.                                                                                                                                                                                                             |
+| `RATE_LIMIT_MAX_REQUESTS`       | no       | `100`         | Default max requests per window per client.                                                                                                                                                                                                             |
+| `JWT_ACCESS_SECRET`             | **yes**  | —             | Signs end-user access tokens. Min 32 chars. Generate with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.                                                                                                                   |
+| `JWT_ACCESS_TTL_SECONDS`        | no       | `900`         | End-user access token lifetime (15 min).                                                                                                                                                                                                                |
+| `JWT_REFRESH_TTL_SECONDS`       | no       | `2592000`     | End-user refresh token / session lifetime (30 days).                                                                                                                                                                                                    |
+| `ADMIN_JWT_ACCESS_SECRET`       | **yes**  | —             | Signs admin access tokens. **Must differ from `JWT_ACCESS_SECRET`** — the two auth systems are fully independent (ARCHITECTURE.md §14). Min 32 chars.                                                                                                   |
+| `ADMIN_JWT_ACCESS_TTL_SECONDS`  | no       | `900`         | Admin access token lifetime.                                                                                                                                                                                                                            |
+| `ADMIN_JWT_REFRESH_TTL_SECONDS` | no       | `2592000`     | Admin refresh token / session lifetime.                                                                                                                                                                                                                 |
+| `ADMIN_COOKIE_DOMAIN`           | no       | unset         | Set only in production, when the admin panel and API share a registrable domain (e.g. `.astroai.app`) the session cookies should be scoped to. Left unset in local dev.                                                                                 |
+| `GOOGLE_CLIENT_ID`              | **yes**  | —             | Google OAuth **Web client ID** from Google Cloud Console — used as the expected audience when verifying Google ID tokens from every platform, mobile included. Not a secret by itself, but treat the whole OAuth client configuration as project-owned. |
+| `ADMIN_SEED_EMAIL`              | no\*     | —             | Used only by `npm run seed:admin` to create the first super-admin account. Not read by the server.                                                                                                                                                      |
+| `ADMIN_SEED_PASSWORD`           | no\*     | —             | ditto — min 12 characters.                                                                                                                                                                                                                              |
+| `ADMIN_SEED_NAME`               | no\*     | —             | ditto.                                                                                                                                                                                                                                                  |
+
+\* Required when actually _running_ `npm run seed:admin` — the script itself validates and exits
+with a clear error if any of the three are missing; the main server never reads them.
 
 Validated by `backend/src/config/env.ts` (Zod). Not yet present (added when their owning module is
-implemented, per ARCHITECTURE.md's open decisions): Razorpay keys, AI provider API keys, JWT
-signing secrets, push/email/SMS provider credentials.
+implemented, per ARCHITECTURE.md's open decisions): Razorpay keys, other AI provider API keys,
+push/email/SMS provider credentials.
+
+### Creating the first admin account
+
+There is no public admin registration route (CLAUDE.md §51 — no hardcoded admin credentials in
+application code). Run, with a real MongoDB reachable via `MONGODB_URI`:
+
+```bash
+ADMIN_SEED_EMAIL=you@astroai.app ADMIN_SEED_PASSWORD='a-real-password-12+chars' ADMIN_SEED_NAME="Your Name" \
+  npm run seed:admin --workspace=backend
+```
+
+This creates one `super_admin` account. It's idempotent — re-running with the same email is a
+no-op if the account already exists.
 
 ## Admin (`admin/.env.local`, template at `admin/.env.example`)
 
-| Variable                   | Required | Default | Description                                                                                                                                                                                                                         |
-| -------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_BASE_URL` | **yes**  | —       | Base URL of the backend API, e.g. `http://localhost:4000`. Public (browser-exposed) — the admin panel has no server-only secrets in this foundation phase (ARCHITECTURE.md §3: it only calls the backend API, no direct DB access). |
+| Variable                   | Required | Default | Description                                                                                                                                                                                                                                                     |
+| -------------------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_BASE_URL` | **yes**  | —       | Base URL of the backend API, e.g. `http://localhost:4000`. Public (browser-exposed) — the admin panel has no server-only secrets: session tokens live in httpOnly cookies set directly by the backend, never touched by admin's own code (ARCHITECTURE.md §14). |
 
 Validated by `admin/src/config/env.ts` (Zod). Anything added later that must stay server-only
 (never sent to the browser) must **not** use the `NEXT_PUBLIC_` prefix — Next.js exposes any
 variable with that prefix to client bundles.
+
+Admin authentication itself needs no client-side secret: `POST /api/v1/admin/auth/login` sets
+`admin_access_token` and `admin_refresh_token` as httpOnly cookies scoped to `Path=/` — the
+browser sends them automatically on both the admin app's own page requests (so `proxy.ts` can see
+whether a session exists) and cross-origin API calls (so `credentials: 'include'` fetches
+authenticate), and admin's own JavaScript never reads or stores the token values.
 
 ## Mobile
 
@@ -43,10 +76,33 @@ Per-environment values (`development` / `staging` / `production`) are baked in a
 instead, defined directly in `mobile/src/config/env.ts` and validated with the same Zod pattern
 as the other two apps. There is no `.env` file to copy for mobile.
 
-Currently only `apiBaseUrl` is defined per environment (`development` → `http://localhost:4000`;
-`staging`/`production` → placeholder hosts, to be filled in once those environments exist — see
-ARCHITECTURE.md's open decisions). The mobile app must never hold API keys or other secrets
-(CLAUDE.md §36) — all provider calls are server-side, behind the backend.
+| Key                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apiBaseUrl`        | Backend API base URL for this environment. `development` → `http://localhost:4000`; `staging`/`production` → placeholder hosts, to be filled in once those environments are provisioned (ARCHITECTURE.md's open decisions).                                                                                                                                                                                                                                                                                                                |
+| `googleWebClientId` | The Google OAuth **Web client ID** — the _same_ one as the backend's `GOOGLE_CLIENT_ID` (see `@react-native-google-signin/google-signin`'s docs: native flows still authenticate against the Web client ID as audience). Not a secret (native/mobile OAuth uses PKCE, no client secret) — but currently a placeholder value (`REPLACE_WITH_REAL_GOOGLE_WEB_CLIENT_ID...`) in every environment, so Google Sign-In fails clearly rather than silently "succeeding" until a real Google Cloud OAuth client is created and this is filled in. |
+
+The mobile app must never hold true secrets (API keys, client secrets) — CLAUDE.md §36 — all
+provider calls that need a real secret happen server-side, behind the backend. The refresh token
+issued at sign-in is the one piece of sensitive session material mobile holds, and it's kept in
+MMKV encrypted storage (key held in the OS Keychain/Keystore via `react-native-keychain`, itself
+never a literal in source — see `src/lib/secureStorage.ts`), never AsyncStorage.
+
+### Google Sign-In setup (required before it works)
+
+1. Create an OAuth 2.0 client of type **Web application** in Google Cloud Console — this is the
+   "Web client ID" used everywhere above (backend's `GOOGLE_CLIENT_ID` and mobile's
+   `googleWebClientId` must be the _same_ value).
+2. Create additional OAuth clients of type **iOS** and **Android** in the same project (the SDK
+   needs these registered, even though the Web client ID is what's actually sent as audience).
+   - iOS: register the app's bundle ID; add the resulting reversed-client-id URL scheme to
+     `mobile/ios/AstroAI/Info.plist`.
+   - Android: register the app's package name + release/debug SHA-1 fingerprints.
+3. Replace the `googleWebClientId` placeholders in `mobile/src/config/env.ts`.
+4. Set the backend's `GOOGLE_CLIENT_ID` to the same Web client ID.
+
+None of this is fabricated in this codebase (CLAUDE.md §51 forbids faking a provider
+response) — until real credentials are configured, `signInWithGoogle()` fails with a real,
+visible Google SDK error rather than pretending to authenticate.
 
 ## Adding a new variable
 

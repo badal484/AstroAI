@@ -11,6 +11,14 @@ export const ErrorCode = {
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+  // Auth-specific — distinct codes so clients can react differently
+  // (e.g. silently refresh on TOKEN_EXPIRED, force full logout on
+  // SESSION_REVOKED, show a "contact support" state on ACCOUNT_SUSPENDED).
+  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  SESSION_REVOKED: 'SESSION_REVOKED',
+  ACCOUNT_SUSPENDED: 'ACCOUNT_SUSPENDED',
+  ACCOUNT_DELETED: 'ACCOUNT_DELETED',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];

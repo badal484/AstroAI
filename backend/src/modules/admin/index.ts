@@ -1,9 +1,11 @@
-/**
- * admin module — scaffold only.
- *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
- */
-export {};
+import { Router } from 'express';
+import { adminAuthRouter } from './adminAuth.routes';
+import { adminUsersRouter } from './adminUsers.routes';
+
+export const adminRouter = Router();
+adminRouter.use(adminAuthRouter);
+adminRouter.use(adminUsersRouter);
+
+export { adminAuthService } from './adminAuth.service';
+export { adminSessionService } from './adminSession';
+export { rolePermissions, permissionsForRole } from './rbac';

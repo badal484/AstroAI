@@ -14,7 +14,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
 
   // Correlation / logging
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 
   // MongoDB
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
@@ -36,6 +36,35 @@ const envSchema = z.object({
   // Rate limiting foundation
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(100),
+
+  // End-user auth (CLAUDE.md §36) — separate signing secret from admin, so a
+  // user token can never be replayed against admin routes or vice versa.
+  JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),
+  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900), // 15 min
+  JWT_REFRESH_TTL_SECONDS: z.coerce.number().int().positive().default(2_592_000), // 30 days
+
+  // Admin auth — fully separate secret/audience from end-user auth (ARCHITECTURE.md §14).
+  ADMIN_JWT_ACCESS_SECRET: z
+    .string()
+    .min(32, 'ADMIN_JWT_ACCESS_SECRET must be at least 32 characters'),
+  ADMIN_JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  ADMIN_JWT_REFRESH_TTL_SECONDS: z.coerce.number().int().positive().default(2_592_000),
+  // Set in production when the admin panel and API share a registrable domain
+  // (e.g. ".astroai.app") so the admin session cookies can be scoped there.
+  // Left unset in local dev — cookies then default to the API's own host.
+  ADMIN_COOKIE_DOMAIN: z.string().optional(),
+
+  // Google OAuth (end-user sign-in). This is the OAuth "Web client ID" — used
+  // as the expected audience when verifying ID tokens from every platform
+  // (mobile included; see docs/ENVIRONMENT.md).
+  GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
+
+  // Used only by `npm run seed:admin` (backend/scripts/seedAdmin.ts) to create
+  // the first super-admin account — not read by the server itself, so it's
+  // optional here and validated by the script when it actually runs.
+  ADMIN_SEED_EMAIL: z.string().email().optional(),
+  ADMIN_SEED_PASSWORD: z.string().min(12).optional(),
+  ADMIN_SEED_NAME: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

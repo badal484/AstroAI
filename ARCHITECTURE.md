@@ -543,34 +543,81 @@ events reference `userId` but do not duplicate profile/chat content into the eve
 
 ## 14. Authentication / Authorization Architecture
 
-**Two entirely separate auth systems**, not shared tokens/roles:
+**Implemented.** Two entirely separate auth systems, not shared tokens/roles, sessions, or
+signing secrets.
 
 **End-user auth (mobile):**
 
-- JWT access token (short-lived) + refresh token (longer-lived, rotated on use, stored server-
-  side hashed to allow revocation), issued by `modules/auth`.
-- Mobile stores tokens in encrypted MMKV, never in plain AsyncStorage (CLAUDE.md §36).
-- Auth methods at minimum: phone/OTP (typical for the Indian market this product targets) and/or
-  email — exact primary method is a **TBD** product decision (see Open Decisions).
-- Token refresh handled by an API-client interceptor; expired-refresh forces re-login, satisfying
-  CLAUDE.md §46 (auth expiration handling).
+- **Provider-based**, not tied to one credential type: `modules/auth/providers/` defines an
+  `AuthProviderAdapter` interface (`verify(credential) → { providerId, email, name, avatarUrl }`);
+  `modules/auth/auth.service.ts` depends only on that abstraction via a small provider registry
+  keyed by `AuthProviderType`. **Google Sign-In is the first provider** (`google.provider.ts`,
+  verifies ID tokens via `google-auth-library` against `GOOGLE_CLIENT_ID`); **phone/OTP is the
+  planned second provider** and slots into the same registry with zero changes to session, user,
+  or account-status logic — this is what "support future authentication providers without
+  rewriting the user system" resolves to concretely.
+- A verified identity is linked to a `User` via a separate `AuthIdentity` collection
+  (`{ userId, provider, providerId }`, unique on `(provider, providerId)`) rather than fields on
+  `User` — a user can eventually hold multiple linked providers. First sign-in creates the
+  `User` + `AuthIdentity` in one Mongo transaction; a concurrent duplicate sign-in race is
+  resolved by catching the resulting duplicate-key error and returning the identity that won,
+  not an error (idempotent registration).
+- **Tokens:** JWT access token (15 min default, `JWT_ACCESS_SECRET`) + an _opaque_ (random,
+  not JWT) refresh token, only its SHA-256 hash ever persisted (`Session` collection, TTL-indexed
+  on `expiresAt`). Opaque + server-side-hashed was chosen over a second JWT specifically so
+  revocation is a plain DB write, not a blacklist. Refresh rotates on every use, and reuse of an
+  already-rotated token — a theft/replay signal — revokes every session for that user
+  (`session.service.ts`'s `rotate()`), not just the presented one.
+- `authenticate` middleware verifies the access token's signature/expiry _and_ re-reads the
+  user's current status from Mongo on every request (not the token's cached claim) — a
+  suspension takes effect immediately, not after up to 15 minutes of remaining token lifetime.
+- Mobile stores the refresh token in MMKV, encrypted with a key generated once per device and
+  held in the OS Keychain/Keystore (`react-native-keychain`) — never a literal in source
+  (CLAUDE.md §36). The access token lives only in memory (Zustand), re-derived via silent
+  refresh on cold start.
+- `apiClient.ts` (both mobile and admin) attempts exactly one silent refresh-and-retry on
+  `TOKEN_EXPIRED`/`UNAUTHORIZED`; a refresh failure or `SESSION_REVOKED` tears the session down
+  and returns the user to the Auth navigator (CLAUDE.md §46).
 
 **Admin auth (admin panel):**
 
-- Separate `adminUsers` collection, separate JWT audience/signing context from end-user tokens
-  (so an end-user token can never be replayed against admin routes and vice versa).
-- Backed by RBAC: `adminRoles` define named roles (super admin, operations, support, finance,
-  marketing, content, AI manager, analyst — CLAUDE.md §32) as permission sets; a permission
-  middleware (`requirePermission('wallet:adjust')` etc.) guards every sensitive admin route —
-  authorization is enforced at the backend route/service layer, the admin UI's conditional
-  rendering (§3) is UX only.
-- Every admin authentication event and every sensitive action is written to `auditLogs`
-  (CLAUDE.md §33), including actor, action, target, timestamp, metadata, and IP/device where
-  legally appropriate (jurisdiction-specific — **TBD**, see Privacy/Risks).
+- Separate `AdminUser` collection, separate session collection (`AdminSession`), separate JWT
+  signing secret (`ADMIN_JWT_ACCESS_SECRET`) — an end-user token can never be replayed against
+  admin routes and vice versa. Password-based (argon2id hashed) — there is no public admin
+  registration route; the first `super_admin` is created by `backend/scripts/seedAdmin.ts`
+  (CLAUDE.md §51 — no hardcoded admin credentials in application code).
+- Session tokens travel as httpOnly, `SameSite=Lax` cookies (`admin_access_token`,
+  `admin_refresh_token`) scoped to `Path=/` (not just `/api/v1/admin`) — deliberately: the
+  Next.js app's own `proxy.ts` needs to see the cookie on requests to its _own_ pages (`/`,
+  `/login`), not only on calls to the backend API, and cookies are matched by (registrable
+  domain, path), never by port, so the same cookie correctly reaches both `localhost:3000` (or
+  wherever admin runs) and `localhost:4000` (the API) in local dev. `ADMIN_COOKIE_DOMAIN` scopes
+  it to a shared parent domain in production. Admin's own JavaScript never reads the token
+  values — only the backend and the browser's cookie jar ever see them.
+- Backed by RBAC: `AdminRole` (super_admin, operations, support, finance, marketing, content,
+  ai_manager, analyst — CLAUDE.md §32) maps to `AdminPermission[]` in `modules/admin/rbac.ts` —
+  the single source of truth. `requirePermission(permission)` middleware guards every sensitive
+  admin route server-side; the admin UI's conditional nav/action rendering (§3) reads the same
+  permissions from `/admin/auth/me` but is UX only (CLAUDE.md §37 — never trust the client).
+  Only `users:read`, `users:manage`, `admin_users:manage`, `audit_logs:read` exist so far
+  (matching what's implemented); future modules add their own permissions to the same map.
+- `proxy.ts` (Next.js's request-time hook, formerly "middleware") is an optimistic UX gate only —
+  it checks cookie _presence_, not validity, to redirect fast and avoid a flash of protected
+  content. The authoritative check is `(dashboard)/layout.tsx` calling `GET /admin/auth/me` on
+  mount, which the backend verifies for real; a cookie that's present but no longer valid
+  (expired past rotation, revoked, or an account since suspended) is caught here, not in the
+  proxy, and redirects to `/login`.
+- Every admin authentication event and every sensitive action should be written to `auditLogs`
+  (CLAUDE.md §33) — **not yet wired up** (the `auditLogs` module is still a placeholder; this is
+  the next piece to land on top of the auth foundation now in place), including actor, action,
+  target, timestamp, metadata, and IP/device where legally appropriate (jurisdiction-specific —
+  **TBD**, see Privacy/Risks).
 
-Authorization middleware is shared infrastructure (`middleware/auth.ts`,
-`middleware/requirePermission.ts`) but configured with two distinct token verification contexts
-so the two systems cannot cross-authenticate.
+Session infrastructure (`shared/session/session.schema.ts`, `session.service.ts`) is genuinely
+shared between the two systems — a schema/service _factory_, not a shared collection or shared
+state — since a "session" (opaque refresh token → subject, with rotation and reuse detection) is
+identical infrastructure for both, instantiated once per system against its own Mongoose model
+and TTL.
 
 ---
 
@@ -663,8 +710,9 @@ server` or a dedicated test Atlas cluster — **TBD**) for modules with real que
    a third-party astrology API. Affects `modules/astrology/engine` internals, cost, accuracy, and
    latency; does not affect its public interface, so it can be deferred but should be decided
    before report/chat features are built on top of it.
-2. **Primary auth method** for end users (phone/OTP vs. email vs. both) — affects `modules/auth`
-   design and the OTP-delivery dependency (SMS provider).
+2. ~~**Primary auth method**~~ **Resolved:** Google Sign-In first (implemented — see §14),
+   phone/OTP planned as a second provider on the same `AuthProviderAdapter` registry once an
+   SMS/OTP vendor is chosen (still open, see #3-adjacent).
 3. **Push/email/SMS provider selection** (`modules/notifications/channels/*`) — no vendor chosen
    yet; each channel is an adapter so the choice is isolated, but one must be picked before
    notifications can be implemented end-to-end.
@@ -683,7 +731,10 @@ types` + three apps. Affects initial scaffold structure (Phase 2 of implementati
 9. **Analytics rollup threshold** — when raw-event aggregation is replaced by precomputed
    rollups; deferrable, but the `analytics` module should be structured so this swap doesn't
    require a rewrite.
-10. **Test runner choice** (Jest vs. Vitest) for backend/admin consistency.
+10. ~~**Test runner choice**~~ **Resolved:** Vitest for backend and admin (fast, native ESM/TS,
+    minimal config); Jest for mobile (the React Native ecosystem's default, required by
+    `@react-native/jest-preset` and `@testing-library/react-native`) — the two apps' test
+    tooling doesn't need to match since they never share test code.
 
 **Architectural risks to watch:**
 
@@ -711,7 +762,10 @@ types` + three apps. Affects initial scaffold structure (Phase 2 of implementati
 **Dependencies implementation will need before certain modules can be completed:**
 
 - Astrology module depends on Decision #1.
-- Auth module depends on Decision #2 and an SMS/OTP provider if phone-based.
+- Auth module's Google provider is fully implemented but needs a real Google Cloud OAuth client
+  (Web + iOS + Android client IDs) before it can be exercised beyond mocked tests — see
+  docs/ENVIRONMENT.md's "Google Sign-In setup". The phone/OTP provider additionally needs an
+  SMS/OTP vendor chosen.
 - Notifications module depends on Decision #3.
 - Payments module depends on Razorpay account/credentials (test mode acceptable for development,
   per "do not use fake production secrets" — real Razorpay _test_ keys are required, not fabricated

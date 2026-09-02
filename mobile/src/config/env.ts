@@ -9,10 +9,14 @@ import { z } from 'zod';
  * is caught immediately rather than surfacing as a confusing runtime bug.
  *
  * No secrets belong here — the mobile app never holds API keys (CLAUDE.md §36).
+ * `googleWebClientId` is not a secret: OAuth client IDs are public
+ * identifiers by design (native/mobile OAuth uses PKCE, no client secret
+ * involved) — see https://developers.google.com/identity/protocols/oauth2/native-app.
  */
 const envSchema = z.object({
   environment: z.enum(['development', 'staging', 'production']),
   apiBaseUrl: z.string().url(),
+  googleWebClientId: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -21,16 +25,25 @@ const environments: Record<'development' | 'staging' | 'production', Env> = {
   development: {
     environment: 'development',
     apiBaseUrl: 'http://localhost:4000',
+    // TODO: replace with a real Google Cloud OAuth Web client ID —
+    // see docs/ENVIRONMENT.md. Google Sign-In fails clearly with this
+    // placeholder rather than silently pretending to work.
+    googleWebClientId:
+      'REPLACE_WITH_REAL_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
   },
   staging: {
     environment: 'staging',
     // TODO: replace with the real staging API host once provisioned.
     apiBaseUrl: 'https://staging-api.astroai.example.com',
+    googleWebClientId:
+      'REPLACE_WITH_REAL_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
   },
   production: {
     environment: 'production',
     // TODO: replace with the real production API host once provisioned.
     apiBaseUrl: 'https://api.astroai.example.com',
+    googleWebClientId:
+      'REPLACE_WITH_REAL_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
   },
 };
 

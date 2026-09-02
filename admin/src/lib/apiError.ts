@@ -22,3 +22,12 @@ export class ApiError extends Error {
     this.details = params.details;
   }
 }
+
+/** A session-valid-but-not-permitted response (RBAC denial) — distinct from
+ * a session-level failure (UNAUTHORIZED/TOKEN_EXPIRED/SESSION_REVOKED,
+ * handled by apiClient's refresh-and-retry) or ACCOUNT_SUSPENDED (which
+ * should log the admin out). Pages use this to render an "unauthorized"
+ * state in place rather than redirecting to /login. */
+export function isForbidden(error: unknown): boolean {
+  return error instanceof ApiError && error.code === 'FORBIDDEN';
+}

@@ -79,3 +79,52 @@ export class InternalError extends AppError {
     super(message);
   }
 }
+
+// --- Auth-specific errors (distinct codes so clients can react differently
+// per CLAUDE.md's auth requirements — e.g. mobile silently refreshes on
+// TOKEN_EXPIRED but forces a full logout on SESSION_REVOKED) ---
+
+export class InvalidCredentialsError extends AppError {
+  readonly code = ErrorCode.INVALID_CREDENTIALS;
+  readonly httpStatus = 401;
+
+  constructor(message = 'Invalid credentials') {
+    super(message);
+  }
+}
+
+export class TokenExpiredError extends AppError {
+  readonly code = ErrorCode.TOKEN_EXPIRED;
+  readonly httpStatus = 401;
+
+  constructor(message = 'Token has expired') {
+    super(message);
+  }
+}
+
+export class SessionRevokedError extends AppError {
+  readonly code = ErrorCode.SESSION_REVOKED;
+  readonly httpStatus = 401;
+
+  constructor(message = 'Session has been revoked') {
+    super(message);
+  }
+}
+
+export class AccountSuspendedError extends AppError {
+  readonly code = ErrorCode.ACCOUNT_SUSPENDED;
+  readonly httpStatus = 403;
+
+  constructor(message = 'This account has been suspended') {
+    super(message);
+  }
+}
+
+export class AccountDeletedError extends AppError {
+  readonly code = ErrorCode.ACCOUNT_DELETED;
+  readonly httpStatus = 403;
+
+  constructor(message = 'This account no longer exists') {
+    super(message);
+  }
+}

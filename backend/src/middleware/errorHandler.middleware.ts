@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler } from 'express';
-import { ZodError } from 'zod';
+import type { ZodError } from 'zod';
 import type { ApiErrorResponse } from '@astroai/shared-types';
 import { ErrorCode } from '@astroai/shared-types';
 import { AppError, ValidationError } from '../shared/errors';
@@ -41,7 +41,7 @@ export const errorHandlerMiddleware: ErrorRequestHandler = (rawErr, req, res, _n
 function toAppError(err: unknown): AppError {
   if (err instanceof AppError) return err;
 
-  if (err instanceof ZodError) {
+  if (isZodError(err)) {
     return new ValidationError('Request validation failed', err.flatten());
   }
 
@@ -49,4 +49,24 @@ function toAppError(err: unknown): AppError {
     readonly code = ErrorCode.INTERNAL_ERROR;
     readonly httpStatus = 500;
   })(err instanceof Error ? err.message : 'Unknown error');
+}
+
+/**
+ * Duck-typed rather than `instanceof ZodError`: this codebase has observed
+ * `instanceof` fail to match here despite the error genuinely being a
+ * ZodError (constructor.name === 'ZodError', real .issues array) — most
+ * likely two separately-loaded copies of the zod module ending up with
+ * distinct class identities. Checking shape instead of identity sidesteps
+ * that entirely.
+ */
+function isZodError(err: unknown): err is ZodError {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'name' in err &&
+    err.name === 'ZodError' &&
+    'issues' in err &&
+    Array.isArray(err.issues) &&
+    typeof (err as ZodError).flatten === 'function'
+  );
 }
