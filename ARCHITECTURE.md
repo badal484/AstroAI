@@ -251,56 +251,85 @@ idempotency key check (see §38) before any debit/credit is applied.
 
 ## 5. AI Gateway Architecture
 
-Hard boundary (CLAUDE.md §8): **no module ever imports a provider SDK directly.** Everything
-goes through `modules/ai`.
+**Implemented**, with real OpenAI, Anthropic and Gemini adapters. Hard boundary (CLAUDE.md §8):
+**no module ever imports a provider SDK directly.** Everything goes through `modules/ai`.
 
 ```
-Caller (chat, reports, horoscope, notifications-copy, ...)
-        │  generateText() / streamText() / generateStructured() / classifyIntent() / generateEmbedding()
+Caller (chat, reports, horoscope, notifications-copy, ... — none built yet)
+        │  aiGateway.generateText() / streamText() / generateStructured() / classifyIntent() / generateEmbedding()
         ▼
-AI Gateway (modules/ai/gateway)
-        │  resolves logical alias → provider+model via ModelRouter
+AI Gateway (modules/ai/gateway/aiGateway.ts)
+        │  validates input, derives a JSON Schema from the caller's Zod schema for structured calls
         ▼
-Model Router (modules/ai/router)
-        │  reads admin-configured routing table (DB-backed, cached in Redis)
-        │  picks primary provider; on failure classifies error → retries eligible fallback
+Model Router (modules/ai/router/modelRouter.ts)
+        │  aiConfigService.getRoutingCandidates(alias) → ordered provider/model list
+        │  per candidate: same-provider retry on transient errors, then fallback to the next
         ▼
 Provider Adapter (modules/ai/providers/{openai,anthropic,gemini}.adapter.ts)
-        │  implements a common ProviderAdapter interface
+        │  implements the shared ProviderAdapter interface; one real client each, built once in registry.ts
         ▼
-Provider SDK
+Provider SDK (openai / @anthropic-ai/sdk / @google/genai)
 ```
 
-**`ProviderAdapter` interface** (shape, not final code): `generateText`, `streamText`,
-`generateStructured` (JSON-schema-constrained), `classifyIntent`, `generateEmbedding` — each
-adapter implements the subset it supports; the router knows adapter capabilities from config so
-it never routes an alias to a provider that can't fulfill it.
+**`ProviderAdapter` interface** (`modules/ai/ai.types.ts`): `generateText`, `streamText`,
+`generateStructured` (JSON-Schema-constrained — OpenAI's `response_format`, Anthropic's forced
+single tool call, Gemini's `responseJsonSchema`), `generateEmbedding`. Each adapter declares a
+`capabilities: Set<AICapability>` (`text_generation`/`streaming`/`structured_output`/
+`embedding`) — e.g. Anthropic has no embeddings API, so its adapter simply omits that capability,
+and the router skips it as a candidate for any embedding call rather than trying and failing.
+`classifyIntent` has no adapter-level implementation at all: it's built once, in the gateway, on
+top of `generateStructured` with a fixed `{ intent, confidence }` schema — classification is
+just structured generation with a specific shape, so no provider-specific code is needed for it.
 
 **Model aliases** (CLAUDE.md §9): `fast-chat`, `smart-chat`, `reasoning`, `voice-chat`,
-`report-generation`, `summarization`, `classification`. Alias → provider/model mapping lives in
-an admin-editable `aiProviderConfigs` collection, cached in Redis with short TTL + invalidated on
-admin write, so a config change takes effect without a redeploy.
+`report-generation`, `summarization`, `classification` (`packages/shared-types/src/ai.ts`).
+Alias → ordered provider/model candidate list resolves through `aiConfigService
+.getRoutingCandidates()`: an admin override in the `aiRoutingConfigs` collection if one exists
+(Redis-cached, invalidated on write), else the built-in default in `router/defaultRouting.ts` —
+the system works with sensible routing before any admin ever touches it, the same pattern as
+`LOCATION_PROVIDER`/`ASTROLOGY_ENGINE_PROVIDER`. **No admin route exists yet** to edit routing
+config — `aiConfigService.setRoutingCandidates()` is fully implemented and tested, ready for an
+admin controller to call.
 
-**Fallback (CLAUDE.md §10):** router wraps each provider call with a timeout; on timeout, rate
-limit (429), or 5xx-class provider error, it retries against the next configured fallback for
-that alias (bounded attempts, no infinite retry). All provider-specific errors are caught and
-normalized to a generic `AIGatewayError` before reaching callers — callers/users never see raw
-provider error text.
+**Retry vs. fallback (CLAUDE.md §10/§40):** `providers/classifyError.ts` normalizes every raw
+provider error (OpenAI's `APIError`, Anthropic's `APIError`, Gemini's `ApiError` — all expose the
+same `.status` convention) into one category, each with its own retry/fallback policy:
 
-**Observability:** every gateway call emits an `aiUsageEvents` record — requestId, alias,
-provider, model, latency, success/failure, fallback-used, token usage (when provider returns
-it), estimated cost (computed from admin-configured per-model rates), error category. This feeds
-admin AI-cost analytics (CLAUDE.md §10/§49) and is written asynchronously (fire-and-forget via a
-queue) so logging never adds latency to the user-facing response.
+| Category                            | Same-provider retry    | Falls back to next candidate |
+| ----------------------------------- | ---------------------- | ---------------------------- |
+| `timeout`, `server_error`           | yes (1 retry, backoff) | yes                          |
+| `rate_limited`, `not_configured`    | no                     | yes                          |
+| `authentication`, `invalid_request` | no                     | **no — aborts immediately**  |
+| `unknown`                           | yes (lenient)          | yes                          |
 
-**Streaming:** `streamText()` returns an async iterable/Node stream abstraction independent of
-provider-specific streaming formats (SSE vs provider SDK stream), normalized once inside each
-adapter; the chat module relays normalized chunks over Socket.IO to the client.
+Every failure is wrapped in a single `AIGatewayError` (503) once all eligible candidates are
+exhausted — callers/users never see raw provider error text. Streaming's fallback window is
+narrower than the other calls: once a candidate's first chunk has been pulled successfully, the
+caller is committed to that provider (swapping mid-stream isn't possible once output may already
+be relayed to a client), so only connection failures are retried/failed-over.
 
-**Astrology data injection:** callers (chat/report services) fetch verified facts from the
-Astrology Engine first, then pass them into `generateText`/`generateStructured` as structured
-context — the AI Gateway itself has no knowledge of astrology and never receives a bare user
-question without the calculated facts already attached, enforcing CLAUDE.md §11.
+**Observability:** every attempt (success or failure, including ones only a retry/fallback ever
+saw) is recorded to the `aiUsageEvents` collection — requestId, alias, provider, model, latency,
+success/failure, fallback-used, token usage (when the provider returns it), estimated cost
+(`modules/ai/costRates.ts`'s default per-model rate table), error category. Recorded
+fire-and-forget (`aiUsageService.record()`, caught/logged on failure, never awaited on the
+response path) so logging never adds latency — CLAUDE.md's queue suggestion is deferred until
+this codebase has BullMQ infrastructure for anything else; a synchronous fire-and-forget call
+already satisfies "never blocks the caller."
+
+**Streaming:** `streamText()` returns an `AsyncIterable` of `{ delta, done }` chunks, provider
+formats (OpenAI SSE deltas, Anthropic `content_block_delta` events, Gemini's chunked responses)
+normalized once inside each adapter — a future chat module relays these over Socket.IO.
+
+**Structured output:** the gateway accepts a Zod schema, derives a JSON Schema from it
+(`zod-to-json-schema`) to send to the provider, then parses and re-validates the provider's raw
+JSON response against that same Zod schema before returning — a provider returning malformed or
+schema-mismatched JSON surfaces as a clear `AIInvalidRequestError`, never silently trusted as `T`.
+
+**Astrology data injection:** callers (chat/report services, not yet built) fetch verified facts
+from the Astrology Engine first, then pass them into `generateText`/`generateStructured` as
+structured context — the AI Gateway itself has no knowledge of astrology and never receives a
+bare user question without the calculated facts already attached, enforcing CLAUDE.md §11.
 
 ---
 
@@ -840,10 +869,12 @@ types` + three apps. Affects initial scaffold structure (Phase 2 of implementati
 - Payments module depends on Razorpay account/credentials (test mode acceptable for development,
   per "do not use fake production secrets" — real Razorpay _test_ keys are required, not fabricated
   ones).
-- AI Gateway depends on at least one real provider API key (test/dev tier) to be usable beyond
-  interface stubs — CLAUDE.md §51 forbids faking provider responses in production code, so the
-  gateway's adapters need genuine (even if low-tier/dev) credentials to be exercised beyond unit
-  tests with mocked adapters.
+- AI Gateway is fully implemented (real OpenAI/Anthropic/Gemini adapters, router, retry/
+  fallback/timeout, usage tracking) and tested against fake `ProviderAdapter` doubles — CLAUDE.md
+  §51 forbids faking provider responses in production code, so it still needs at least one real
+  provider API key (test/dev tier) configured before any live business feature built on top of it
+  can produce genuine output. No caller exists yet (chat/reports/horoscope are all unbuilt); no
+  admin route exists yet to edit alias routing config, though the service layer for one does.
 
 ---
 

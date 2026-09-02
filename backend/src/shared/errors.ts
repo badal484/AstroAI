@@ -174,3 +174,30 @@ export class AstrologyEngineUnavailableError extends AppError {
     super(message);
   }
 }
+
+// --- AI Gateway errors ---
+
+/** Every configured provider/fallback for an alias failed (or none is
+ * configured at all). Carries the normalized failure category in
+ * `details` for logging — the message itself is always safe/generic,
+ * never a raw provider error string (CLAUDE.md §10). */
+export class AIGatewayError extends AppError {
+  readonly code = ErrorCode.AI_GATEWAY_UNAVAILABLE;
+  readonly httpStatus = 503;
+
+  constructor(details: unknown, message = 'AI is temporarily unavailable. Please try again.') {
+    super(message, details);
+  }
+}
+
+/** The request itself was malformed (bad alias, empty messages, a
+ * structured-output schema the response didn't match, ...) — a caller
+ * bug, not a provider failure. Never retried across providers. */
+export class AIInvalidRequestError extends AppError {
+  readonly code = ErrorCode.AI_INVALID_REQUEST;
+  readonly httpStatus = 400;
+
+  constructor(message: string, details?: unknown) {
+    super(message, details);
+  }
+}

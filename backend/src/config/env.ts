@@ -78,6 +78,17 @@ const envSchema = z.object({
   // present fabricated astrology facts as real (CLAUDE.md §11/§51). See
   // ARCHITECTURE.md §6 ("Open decision: build vs. integrate").
   ASTROLOGY_ENGINE_PROVIDER: z.enum(['none']).default('none'),
+
+  // AI Gateway provider credentials (CLAUDE.md §8/§34) — each optional and
+  // independent; a provider with no key configured is simply unavailable
+  // as a routing candidate (the model router skips straight to the next
+  // fallback) rather than the whole gateway failing to boot. Never sent to
+  // the mobile app or any client — the gateway is server-side only.
+  OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().optional(),
+  // Bounds shared by every provider adapter call (CLAUDE.md §40).
+  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(20_000),
 });
 
 export type Env = z.infer<typeof envSchema>;

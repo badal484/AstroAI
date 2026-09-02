@@ -35,6 +35,10 @@ plain local connection strings (e.g. `mongodb://localhost:27017`), not secrets.
 | `LOCATION_PROVIDER`             | no       | `none`        | `none` or `google`. `none` means birth-location search returns a clear "not configured" error (the mobile app falls back to manual location entry) — see "Location provider" below.                                                                     |
 | `GOOGLE_PLACES_API_KEY`         | no\*\*   | —             | Google Geocoding API key. Required only when `LOCATION_PROVIDER=google`.                                                                                                                                                                                |
 | `ASTROLOGY_ENGINE_PROVIDER`     | no       | `none`        | Only `none` exists today. Astrology endpoints return a clear 503 until a real engine is wired in — see "Astrology engine" below. Never set to fake/mock a provider in this codebase (CLAUDE.md §51).                                                    |
+| `OPENAI_API_KEY`                | no       | unset         | Enables the OpenAI adapter in the AI Gateway. See "AI Gateway" below.                                                                                                                                                                                   |
+| `ANTHROPIC_API_KEY`             | no       | unset         | Enables the Anthropic adapter.                                                                                                                                                                                                                          |
+| `GEMINI_API_KEY`                | no       | unset         | Enables the Gemini adapter (Google's `@google/genai` SDK).                                                                                                                                                                                              |
+| `AI_REQUEST_TIMEOUT_MS`         | no       | `20000`       | Per-call timeout the model router enforces on every provider adapter call, regardless of provider.                                                                                                                                                      |
 
 \* Required when actually _running_ `npm run seed:admin` — the script itself validates and exits
 with a clear error if any of the three are missing; the main server never reads them.
@@ -73,6 +77,29 @@ returns a clear `503 ASTROLOGY_ENGINE_UNAVAILABLE` in this state. To wire in a r
 in-house ephemeris binding or a licensed Vedic astrology API), implement `AstrologyEngine` and
 register it in `modules/astrology/engine/registry.ts` — no caller (astrology.service, and later
 chat/reports/horoscope) needs to change.
+
+### AI Gateway
+
+`modules/ai` is the only place in the backend allowed to import an AI provider SDK (CLAUDE.md
+§8) — OpenAI, Anthropic and Gemini adapters all ship for real, each active only when its API key
+is set. A provider with no key configured is treated as just another fallback-eligible routing
+candidate (never a fake response), so the app works with zero, one, two or all three keys set.
+
+Business modules never reference a provider or model id — they call `aiGateway.generateText()` /
+`streamText()` / `generateStructured()` / `classifyIntent()` / `generateEmbedding()` with a
+logical `ModelAlias` (`fast-chat`, `smart-chat`, `reasoning`, `voice-chat`, `report-generation`,
+`summarization`, `classification`). The model router resolves an alias to a provider/model via
+`modules/ai/router/defaultRouting.ts` (the built-in default) or an admin override persisted in
+the `aiRoutingConfigs` collection (`modules/ai/aiConfig.service.ts`, Redis-cached, invalidated on
+write) — no admin UI exists yet to edit that collection, but the storage/service layer is ready
+for one.
+
+Every call is timeout-bounded (`AI_REQUEST_TIMEOUT_MS`), retried once on the same provider for
+transient errors (timeout/5xx), and falls back to the alias's next configured provider on
+timeout/rate-limit/5xx/not-configured — never on an authentication or invalid-request error,
+since switching providers won't fix those. Every attempt (success or failure) is recorded to the
+`aiUsageEvents` collection with latency, token usage and an estimated cost where available
+(`modules/ai/costRates.ts`), fire-and-forget so logging never adds latency to the caller.
 
 ### Creating the first admin account
 
