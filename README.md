@@ -6,16 +6,20 @@ Next.js admin panel, sharing a `packages/shared-types` package. See
 [`ARCHITECTURE.md`](ARCHITECTURE.md) for the technical design.
 
 **Status:** foundation + authentication/authorization + birth profile & astrology domain + AI
-Gateway implemented. Auth: Google Sign-In for end users, email+password for admins, RBAC,
-sessions with refresh rotation. Birth profiles: full validation (dates, times, timezones,
-ambiguous/manual locations), a pluggable `AstrologyEngine` abstraction with caching/persistence —
-no real calculation provider is wired in yet, so astrology endpoints return a clear `503` until
-one is configured (see docs/ENVIRONMENT.md's "Astrology engine"). AI Gateway: real OpenAI/
-Anthropic/Gemini provider adapters behind a single interface, model-alias routing with
-retry/fallback/timeout and usage tracking — no business module calls it yet (chat/reports/
-horoscope aren't built), and no admin UI edits routing config yet, though the service layer for
-one exists (see docs/ENVIRONMENT.md's "AI Gateway"). Other product features (chat, wallet,
-payments, reports, ...) are not implemented yet.
+Gateway + AI astrologer intelligence layer implemented. Auth: Google Sign-In for end users,
+email+password for admins, RBAC, sessions with refresh rotation. Birth profiles: full validation
+(dates, times, timezones, ambiguous/manual locations), a pluggable `AstrologyEngine` abstraction
+with caching/persistence — no real calculation provider is wired in yet, so astrology endpoints
+return a clear `503` until one is configured (see docs/ENVIRONMENT.md's "Astrology engine"). AI
+Gateway: real OpenAI/Anthropic/Gemini provider adapters behind a single interface, model-alias
+routing with retry/fallback/timeout and usage tracking. AI astrologer: intent/language detection,
+a configurable persona, astrology-grounded prompt assembly, and two independent safety layers
+(a deterministic pre-generation crisis/self-harm gate that never calls the AI at all, plus a
+post-generation scan for guarantee/death/diagnosis language) — see ARCHITECTURE.md §5a. No
+business module calls either yet (chat/reports/horoscope aren't built), and no admin UI edits
+routing/persona config yet, though the service layers for both exist (see docs/ENVIRONMENT.md's
+"AI Gateway"). Other product features (chat, wallet, payments, reports, ...) are not implemented
+yet.
 
 ## Prerequisites
 
@@ -67,7 +71,7 @@ npm run ios --workspace=mobile     # or: npm run android --workspace=mobile
 ## Tests
 
 ```bash
-npm run test --workspace=backend   # Vitest — auth, birth profiles, location, astrology, AI Gateway (in-memory MongoDB, no setup needed)
+npm run test --workspace=backend   # Vitest — auth, birth profiles, location, astrology, AI Gateway, AI astrologer (in-memory MongoDB, no setup needed)
 npm run test --workspace=admin     # Vitest — login form, API client refresh/retry, auth store
 npm run test --workspace=mobile    # Jest — auth store, API client, LoginScreen, birth profile form, time helpers
 ```

@@ -6,3 +6,4 @@ export * from './location';
 export * from './birthProfile';
 export * from './astrology';
 export * from './ai';
+export * from './astrologer';

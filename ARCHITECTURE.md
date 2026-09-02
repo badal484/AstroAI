@@ -333,6 +333,85 @@ bare user question without the calculated facts already attached, enforcing CLAU
 
 ---
 
+## 5a. AI Astrologer Intelligence Layer
+
+**Implemented** (`modules/astrologer/`). This is the persona/conversation layer built on top of
+the AI Gateway (§5) and Astrology Engine (§6a) — not a generic chatbot wrapper. No caller exists
+yet (chat/voice/reports aren't built); this module exposes one function,
+`generateAstrologerResponse()`, for a future chat module to call and to own message
+persistence/streaming delivery around.
+
+```
+generateAstrologerResponse(userMessage, conversationHistory, birthProfileId, ...)
+        │
+        ▼
+1. detectLanguage()            — sync, dependency-free (script + keyword heuristic), CLAUDE.md §18/§19
+2. detectIntent()               — deterministic crisis/unsafe gate FIRST, then AI classification
+        │  if crisis_self_harm → return a FIXED template response here, no AI call at all (CLAUDE.md §17)
+        ▼
+3. Context builders (parallel): astrologyContext + conversationContext + userPreferenceContext + reasoningContext
+        ▼
+4. systemPrompt.ts assembles persona + hard safety rules + language + intent guidance + astrology
+   facts + reasoning guidance + conversation memory + user context, in that fixed order
+        ▼
+5. aiGateway.generateText() (never streamed — see below)
+        ▼
+6. outputSafetyValidator — regex scan for guarantee/death/human-claim/diagnosis language
+        │  unsafe → regenerate once with a corrective instruction → re-validate
+        │  still unsafe → replace with a fixed safe fallback response (never surface the unsafe draft)
+        ▼
+7. responsePostProcessor — strips an opening clause repeated verbatim from the prior assistant turn
+```
+
+**Why non-streaming:** the safety validator needs the complete response before anything reaches
+the user, so `generateText` (not `streamText`) is used throughout — a future chat module wanting
+a "typing" UX would reveal an already-validated response progressively itself, not stream
+unvalidated provider output token by token.
+
+**Intent detection is two-stage, not one AI call (CLAUDE.md §17):** stage one is a deterministic,
+dependency-free keyword scan (`detection/crisisPatterns.ts`, `unsafePatterns.ts`) for self-harm/
+suicide and clearly unsafe requests — it runs unconditionally, before any AI call, and works even
+with zero AI providers configured, because the highest-stakes safety gate in the whole system
+must never depend on a model correctly classifying a paraphrased crisis message. Stage two (AI
+classification via `aiGateway.classifyIntent`) still includes `crisis_self_harm`/`unsafe` as
+possible labels as a second-opinion net, and falls back to a keyword heuristic
+(`keywordIntentFallback.ts`) if the AI Gateway itself is unavailable, so intent detection degrades
+gracefully rather than failing every message when no provider is configured.
+
+**Prompts are files, not strings in a controller:** `prompts/personaPrompt.ts`,
+`languageInstructions.ts`, `intentGuidance.ts`, `safetyRules.ts` are each small, independently
+readable/editable modules; `systemPrompt.ts` only assembles them in a fixed order (safety rules
+placed immediately after the persona, never buried at the end).
+
+**Persona is data, not prose baked into code:** `AstrologerPersona`
+(`packages/shared-types/src/astrologer.ts`) has `name`/`description`/`tone`/`personalityTraits`/
+`expertise`/`supportedLanguages`/`responseStyle`/`greetingBehavior`/`prohibitedBehaviors` fields.
+`persona.service.ts` follows the exact same admin-override-with-built-in-default pattern as
+`aiConfigService`/`DEFAULT_AI_ROUTING` (Redis-cached, Mongo-backed override, no admin route yet —
+the service layer is ready for one) — `DEFAULT_PERSONA` (`persona/defaultPersona.ts`) is the
+initial "Astra" persona and encodes CLAUDE.md §12-17 directly (warm, conversational, honest about
+uncertainty, never claims to be human, never guarantees a prediction).
+
+**Astrology facts are supplied, never invented (CLAUDE.md §11):** `context/astrologyContext.ts`
+is the ONLY source of chart facts the prompt is allowed to reference — it degrades explicitly and
+honestly (never silently) to "no verified data available" when there's no linked birth profile,
+the profile can't be found, or the astrology engine itself isn't configured (§6a). Distinct from
+this is `context/reasoningContext.ts` — guidance on _which_ traditional chart factors are relevant
+to the current intent (e.g. the 7th house and Venus for a marriage question) and explicit
+reinforcement that this is guidance about what to look for in the facts already given, never
+license to fabricate a factor that wasn't provided.
+
+**Two independent safety layers, not one:** the prompt instructs the model never to produce
+guarantee/death/diagnosis/human-claim language (`prompts/safetyRules.ts`), and
+`safety/outputSafetyValidator.ts` scans every generated response for that same language
+regardless of whether the prompt worked — defense in depth, since a prompt instruction alone is
+never a hard guarantee. Crisis language never even reaches this layer: it's intercepted before
+generation and answered with a fixed, non-AI-generated template
+(`safety/crisisResponses.ts`) precisely because it's the one path where a template is more
+reliable than even a well-prompted model.
+
+---
+
 ## 6. Birth Profile & Location Architecture
 
 **Implemented.** `modules/birthProfiles/` owns a user's birth profiles (a user can hold several —
@@ -875,6 +954,13 @@ types` + three apps. Affects initial scaffold structure (Phase 2 of implementati
   provider API key (test/dev tier) configured before any live business feature built on top of it
   can produce genuine output. No caller exists yet (chat/reports/horoscope are all unbuilt); no
   admin route exists yet to edit alias routing config, though the service layer for one does.
+- AI astrologer intelligence layer (§5a) is fully implemented and tested against a fake
+  `ProviderAdapter`, including the full CLAUDE.md test-case list (love/marriage/career/money/
+  family/general astrology/daily horoscope/compatibility/unclear/multilingual/unsafe/medical/
+  death-related/crisis questions). Like the AI Gateway it depends on, it produces genuine
+  responses only once a real provider key is configured; the crisis-language safety path works
+  regardless, since it never calls the AI Gateway at all. No admin route exists yet to edit the
+  active persona, though the service layer for one does.
 
 ---
 
