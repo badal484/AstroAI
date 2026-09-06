@@ -5,6 +5,7 @@ import {
   type ChatClientToServerEvents,
   type ChatMessage,
   type ChatServerToClientEvents,
+  type ConsultationStreamPhase,
 } from '@astroai/shared-types';
 import { env } from '../../config/env';
 import { logger } from '../../shared/logger';
@@ -117,6 +118,9 @@ export const chatSocket = {
   },
   messageStatus(conversationId: string, messageId: string, status: ChatMessage['status']): void {
     room(conversationId)?.emit('message:status', { messageId, status });
+  },
+  consultationPhase(conversationId: string, messageId: string, phase: ConsultationStreamPhase): void {
+    room(conversationId)?.emit('consultation:phase', { messageId, phase });
   },
   messageChunk(conversationId: string, messageId: string, delta: string): void {
     room(conversationId)?.emit('message:chunk', { messageId, delta });

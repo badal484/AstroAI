@@ -5,6 +5,7 @@ import { logger } from '../../../shared/logger';
 import type { LocationProviderAdapter } from '../location.provider.types';
 
 const GEOCODE_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
+const DETAILS_URL = 'https://maps.googleapis.com/maps/api/place/details/json';
 
 interface GoogleAddressComponent {
   long_name: string;
@@ -24,7 +25,12 @@ interface GoogleGeocodeResponse {
   results: GoogleGeocodeResult[];
 }
 
-function extractCountry(components: GoogleAddressComponent[]): {
+interface GooglePlaceDetailsResponse {
+  status: string;
+  result?: GoogleGeocodeResult;
+}
+
+function extractCountry(components: GoogleAddressComponent[] = []): {
   country: string;
   countryCode: string;
 } {
@@ -66,12 +72,38 @@ async function callGeocodeApi(params: Record<string, string>): Promise<GoogleGeo
   return body.results;
 }
 
+
+async function callPlaceDetails(placeId: string): Promise<Omit<NormalizedLocation, 'timezone'>> {
+  const apiKey = env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) throw new LocationProviderUnavailableError('GOOGLE_PLACES_API_KEY is not set');
+
+  const url = new URL(DETAILS_URL);
+  url.searchParams.set('place_id', placeId);
+  url.searchParams.set('fields', 'place_id,formatted_address,geometry,address_components');
+  url.searchParams.set('key', apiKey);
+
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!response.ok) throw new LocationProviderUnavailableError('Google Place Details failed');
+
+  const body = (await response.json()) as GooglePlaceDetailsResponse;
+  const placeResult = body.result ?? (body as any).results?.[0];
+  if (body.status === 'ZERO_RESULTS') throw new LocationNotFoundError();
+  if (body.status !== 'OK' || !placeResult) throw new LocationNotFoundError();
+
+  const { country, countryCode } = extractCountry(placeResult.address_components);
+  return {
+    canonicalName: placeResult.formatted_address,
+    latitude: placeResult.geometry.location.lat,
+    longitude: placeResult.geometry.location.lng,
+    country,
+    countryCode,
+    placeId: placeResult.place_id,
+  };
+}
+
 /**
- * Real geocoding adapter, active only when `LOCATION_PROVIDER=google` and
- * `GOOGLE_PLACES_API_KEY` is set. Uses the Geocoding API for both text
- * search (naturally returns multiple candidates for an ambiguous query —
- * this is how "ambiguous location" is handled, by surfacing choices rather
- * than guessing) and place_id resolution.
+ * Real geocoding & places adapter, active when `LOCATION_PROVIDER=google` and
+ * `GOOGLE_PLACES_API_KEY` is set.
  */
 export const googleLocationProvider: LocationProviderAdapter = {
   providerId: 'google',
@@ -92,6 +124,13 @@ export const googleLocationProvider: LocationProviderAdapter = {
   },
 
   async resolve(placeId: string): Promise<Omit<NormalizedLocation, 'timezone'>> {
+    try {
+      return await callPlaceDetails(placeId);
+    } catch (err) {
+      if (err instanceof LocationNotFoundError) throw err;
+      // Fallback to geocode
+    }
+
     const results = await callGeocodeApi({ place_id: placeId });
     const result = results[0];
     if (!result) throw new LocationNotFoundError();

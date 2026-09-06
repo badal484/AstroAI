@@ -24,6 +24,7 @@ export const AIProviderName = {
   OPENAI: 'openai',
   ANTHROPIC: 'anthropic',
   GEMINI: 'gemini',
+  MISTRAL: 'mistral',
 } as const;
 export type AIProviderName = (typeof AIProviderName)[keyof typeof AIProviderName];
 

@@ -23,11 +23,27 @@ redis.on('error', (error: Error) => {
 });
 
 export async function connectRedis(): Promise<void> {
-  if (redis.status === 'ready') return;
+  if (redis.status === 'ready') {
+    logger.info('Redis connected');
+    return;
+  }
 
   await new Promise<void>((resolve, reject) => {
-    redis.once('ready', resolve);
-    redis.once('error', reject);
+    if (redis.status === 'ready') return resolve();
+    const onReady = () => {
+      cleanup();
+      resolve();
+    };
+    const onError = (err: Error) => {
+      cleanup();
+      reject(err);
+    };
+    const cleanup = () => {
+      redis.removeListener('ready', onReady);
+      redis.removeListener('error', onError);
+    };
+    redis.once('ready', onReady);
+    redis.once('error', onError);
   });
 
   logger.info('Redis connected');

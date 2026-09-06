@@ -1,9 +1,13 @@
-/**
- * voice module — scaffold only.
- *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
- */
-export {};
+export * from './voice.types';
+export * from './voiceSession.model';
+export * from './voice.repository';
+export * from './voice.service';
+export * from './voice.controller';
+export * from './voice.routes';
+export * from './providers/voiceRegistry';
+export * from './providers/stt/whisperSTT.adapter';
+export * from './providers/stt/deepgramSTT.adapter';
+export * from './providers/stt/mockSTT.adapter';
+export * from './providers/tts/elevenlabsTTS.adapter';
+export * from './providers/tts/openaiTTS.adapter';
+export * from './providers/tts/mockTTS.adapter';

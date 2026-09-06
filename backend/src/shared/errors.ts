@@ -201,3 +201,244 @@ export class AIInvalidRequestError extends AppError {
     super(message, details);
   }
 }
+
+// --- Wallet & Pricing errors ---
+
+export class InsufficientWalletBalanceError extends AppError {
+  readonly code = ErrorCode.INSUFFICIENT_WALLET_BALANCE;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Insufficient wallet balance to complete this operation') {
+    super(message);
+  }
+}
+
+export class InvalidTransactionAmountError extends AppError {
+  readonly code = ErrorCode.INVALID_TRANSACTION_AMOUNT;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Transaction amount must be a positive integer') {
+    super(message);
+  }
+}
+
+export class WalletTransactionFailedError extends AppError {
+  readonly code = ErrorCode.WALLET_TRANSACTION_FAILED;
+  readonly httpStatus = 500;
+
+  constructor(message = 'Failed to execute wallet transaction', details?: unknown) {
+    super(message, details);
+  }
+}
+
+export class DuplicateIdempotencyKeyError extends AppError {
+  readonly code = ErrorCode.DUPLICATE_IDEMPOTENCY_KEY;
+  readonly httpStatus = 409;
+
+  constructor(message = 'Duplicate transaction request detected') {
+    super(message);
+  }
+}
+
+export class WalletHoldNotFoundError extends AppError {
+  readonly code = ErrorCode.WALLET_HOLD_NOT_FOUND;
+  readonly httpStatus = 404;
+
+  constructor(message = 'Wallet hold reservation not found') {
+    super(message);
+  }
+}
+
+export class WalletHoldExpiredError extends AppError {
+  readonly code = ErrorCode.WALLET_HOLD_EXPIRED;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Wallet hold reservation has expired') {
+    super(message);
+  }
+}
+
+export class PricingConfigNotFoundError extends AppError {
+  readonly code = ErrorCode.PRICING_CONFIG_NOT_FOUND;
+  readonly httpStatus = 404;
+
+  constructor(message = 'Pricing configuration not found') {
+    super(message);
+  }
+}
+
+export class PaymentOrderNotFoundError extends AppError {
+  readonly code = ErrorCode.PAYMENT_ORDER_NOT_FOUND;
+  readonly httpStatus = 404;
+
+  constructor(message = 'Payment order not found') {
+    super(message);
+  }
+}
+
+export class PaymentOrderAlreadyPaidError extends AppError {
+  readonly code = ErrorCode.PAYMENT_ORDER_ALREADY_PAID;
+  readonly httpStatus = 409;
+
+  constructor(message = 'Payment order has already been paid and processed') {
+    super(message);
+  }
+}
+
+export class PaymentVerificationFailedError extends AppError {
+  readonly code = ErrorCode.PAYMENT_VERIFICATION_FAILED;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Payment verification failed', details?: Record<string, unknown>) {
+    super(message, details);
+  }
+}
+
+export class PaymentSignatureInvalidError extends AppError {
+  readonly code = ErrorCode.PAYMENT_SIGNATURE_INVALID;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Invalid cryptographic payment signature') {
+    super(message);
+  }
+}
+
+export class PaymentGatewayError extends AppError {
+  readonly code = ErrorCode.PAYMENT_GATEWAY_ERROR;
+  readonly httpStatus = 502;
+
+  constructor(message = 'Payment gateway communication error', details?: Record<string, unknown>) {
+    super(message, details);
+  }
+}
+
+export class PaymentRefundFailedError extends AppError {
+  readonly code = ErrorCode.PAYMENT_REFUND_FAILED;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Failed to execute payment refund', details?: Record<string, unknown>) {
+    super(message, details);
+  }
+}
+
+export class InvalidRefundAmountError extends AppError {
+  readonly code = ErrorCode.INVALID_REFUND_AMOUNT;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Refund amount exceeds refundable balance') {
+    super(message);
+  }
+}
+
+export class WebhookSignatureInvalidError extends AppError {
+  readonly code = ErrorCode.WEBHOOK_SIGNATURE_INVALID;
+  readonly httpStatus = 401;
+
+  constructor(message = 'Invalid webhook HMAC signature') {
+    super(message);
+  }
+}
+
+export class VoiceSessionNotFoundError extends AppError {
+  readonly code = ErrorCode.VOICE_SESSION_NOT_FOUND;
+  readonly httpStatus = 404;
+
+  constructor(message = 'Voice session not found') {
+    super(message);
+  }
+}
+
+export class VoiceSessionAlreadyEndedError extends AppError {
+  readonly code = ErrorCode.VOICE_SESSION_ALREADY_ENDED;
+  readonly httpStatus = 409;
+
+  constructor(message = 'Voice session has already been completed or terminated') {
+    super(message);
+  }
+}
+
+export class VoiceInsufficientBalanceError extends AppError {
+  readonly code = ErrorCode.VOICE_INSUFFICIENT_BALANCE;
+  readonly httpStatus = 402;
+
+  constructor(message = 'Insufficient wallet balance to start or continue voice session') {
+    super(message);
+  }
+}
+
+export class VoiceSTTFailedError extends AppError {
+  readonly code = ErrorCode.VOICE_STT_FAILED;
+  readonly httpStatus = 502;
+
+  constructor(message = 'Speech-to-Text transcription failed', details?: Record<string, unknown>) {
+    super(message, details);
+  }
+}
+
+export class VoiceTTSFailedError extends AppError {
+  readonly code = ErrorCode.VOICE_TTS_FAILED;
+  readonly httpStatus = 502;
+
+  constructor(message = 'Text-to-Speech audio synthesis failed', details?: Record<string, unknown>) {
+    super(message, details);
+  }
+}
+
+export class VoiceProviderUnavailableError extends AppError {
+  readonly code = ErrorCode.VOICE_PROVIDER_UNAVAILABLE;
+  readonly httpStatus = 503;
+
+  constructor(message = 'No voice provider is currently available') {
+    super(message);
+  }
+}
+
+// --- Report errors ---
+
+export class ReportNotFoundError extends AppError {
+  readonly code = ErrorCode.REPORT_NOT_FOUND;
+  readonly httpStatus = 404;
+
+  constructor(message = 'Report not found') {
+    super(message);
+  }
+}
+
+export class ReportAlreadyCompletedError extends AppError {
+  readonly code = ErrorCode.REPORT_ALREADY_COMPLETED;
+  readonly httpStatus = 409;
+
+  constructor(message = 'Report has already been completed') {
+    super(message);
+  }
+}
+
+export class ReportInsufficientCreditsError extends AppError {
+  readonly code = ErrorCode.REPORT_INSUFFICIENT_CREDITS;
+  readonly httpStatus = 402;
+
+  constructor(message = 'Insufficient wallet credits to generate report') {
+    super(message);
+  }
+}
+
+export class ReportPartnerProfileRequiredError extends AppError {
+  readonly code = ErrorCode.REPORT_PARTNER_PROFILE_REQUIRED;
+  readonly httpStatus = 400;
+
+  constructor(message = 'Partner birth profile is required for compatibility reports') {
+    super(message);
+  }
+}
+
+export class ReportJobFailedError extends AppError {
+  readonly code = ErrorCode.REPORT_JOB_FAILED;
+  readonly httpStatus = 500;
+
+  constructor(message = 'Report generation failed', details?: unknown) {
+    super(message, details);
+  }
+}
+
+
+

@@ -44,6 +44,12 @@ export const birthProfileService = {
   async create(userId: string, input: CreateBirthProfileInput): Promise<BirthProfile> {
     const data = await buildWriteData(input);
     const doc = await birthProfileRepository.create(userId, data);
+    eventBus.emit('birthProfile.completed', {
+      userId,
+      birthProfileId: doc._id.toString(),
+      name: doc.name,
+      dateOfBirth: doc.dateOfBirth,
+    });
     return toBirthProfile(doc);
   },
 

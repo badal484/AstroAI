@@ -86,6 +86,7 @@ beforeEach(() => {
   mockUseConversationSocket.mockReset();
   mockUseConversationSocket.mockReturnValue({
     streamingText: {},
+    streamPhases: {},
     connectionStatus: 'connected',
   });
 });
@@ -120,9 +121,9 @@ describe('ChatScreen', () => {
 
     await renderScreen();
 
-    expect(await screen.findByText('Ask Astra anything')).toBeTruthy();
+    expect(await screen.findByText('Acharya Vashishta')).toBeTruthy();
     expect(await screen.findByText('What is a nakshatra?')).toBeTruthy();
-    expect(screen.getByText('हिं')).toBeTruthy();
+    expect(screen.getByText('हिंदी')).toBeTruthy();
   });
 
   test('sending a message calls the API and clears the input', async () => {
@@ -133,11 +134,11 @@ describe('ChatScreen', () => {
     );
 
     await renderScreen();
-    await screen.findByText('Ask Astra anything');
+    await screen.findByText('Acharya Vashishta');
 
-    const input = screen.getByPlaceholderText('Ask about your chart…');
+    const input = screen.getByPlaceholderText(/Ask Acharya/i);
     await interact(() => fireEvent.changeText(input, 'What about my career?'));
-    await interact(() => fireEvent.press(screen.getByText('Send')));
+    await interact(() => fireEvent.press(screen.getByText('Ask')));
 
     expect(mockSendMessage).toHaveBeenCalledWith('conv-1', {
       content: 'What about my career?',
@@ -185,7 +186,7 @@ describe('ChatScreen', () => {
     await renderScreen();
     await screen.findByText('Something went wrong.');
 
-    await interact(() => fireEvent.press(screen.getByText('Retry')));
+    await interact(() => fireEvent.press(screen.getByText('Retry Consultation')));
 
     expect(mockRegenerateMessage).toHaveBeenCalledWith('conv-1', 'a-failed');
   });
@@ -217,7 +218,7 @@ describe('ChatScreen', () => {
     await screen.findByText('Here is your answer.');
 
     await interact(() =>
-      fireEvent.press(screen.getByLabelText('Good response')),
+      fireEvent.press(screen.getByLabelText('Helpful guidance')),
     );
 
     expect(mockSubmitFeedback).toHaveBeenCalledWith('conv-1', 'a-done', {
@@ -228,6 +229,7 @@ describe('ChatScreen', () => {
   test('shows an offline banner when the socket is disconnected', async () => {
     mockUseConversationSocket.mockReturnValue({
       streamingText: {},
+      streamPhases: {},
       connectionStatus: 'disconnected',
     });
     mockListMessages.mockResolvedValue({ items: [], nextCursor: null });
@@ -235,6 +237,6 @@ describe('ChatScreen', () => {
 
     await renderScreen();
 
-    expect(await screen.findByText(/you're offline/i)).toBeTruthy();
+    expect(await screen.findByText(/reconnecting to consultation/i)).toBeTruthy();
   });
 });

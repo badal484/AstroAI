@@ -1,9 +1,5 @@
-/**
- * notifications module — scaffold only.
- *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
- */
-export {};
+export { notificationRouter } from './notification.routes';
+export { adminNotificationRouter } from './adminNotification.routes';
+export { notificationService } from './notification.service';
+export { campaignService } from './campaign.service';
+export { registerNotificationListeners } from './notification.listener';

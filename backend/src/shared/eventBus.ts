@@ -11,6 +11,17 @@ import { logger } from './logger';
 export interface DomainEvents {
   'birthProfile.changed': { birthProfileId: string };
   'birthProfile.deleted': { birthProfileId: string };
+  'user.registered': { userId: string; email?: string | null; name?: string | null; language?: string };
+  'birthProfile.completed': { userId: string; birthProfileId: string; name: string; dateOfBirth: string };
+  'chat.firstMessage': { userId: string; conversationId: string; title?: string };
+  'wallet.lowBalance': { userId: string; availableBalance: number; threshold: number };
+  'report.ready': { userId: string; reportId: string; reportType: string; pdfUrl?: string | null };
+  'horoscope.ready': { userId: string; rashi: string; date: string; summary?: string };
+  'payment.purchased': { userId: string; orderId: string; amount: number; credits: number; currency: string };
+  'user.inactivity': { userId: string; inactiveDays: number };
+  'user.birthday': { userId: string; birthProfileId: string; name: string };
+  'campaign.triggered': { campaignId: string; targetUserIds?: string[] };
+  'referral.reward': { userId: string; referrerId: string; creditsAwarded: number };
 }
 
 class TypedEventBus {

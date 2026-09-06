@@ -4,6 +4,7 @@ import { connectMongo, disconnectMongo } from '../src/lib/mongo';
 
 beforeAll(async () => {
   await connectMongo();
+  await Promise.all(Object.values(mongoose.models).map((model) => model.syncIndexes()));
 });
 
 afterEach(async () => {

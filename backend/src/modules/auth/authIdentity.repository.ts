@@ -3,8 +3,8 @@ import type { AuthProviderType } from '@astroai/shared-types';
 import { AuthIdentityModel } from './authIdentity.model';
 
 export const authIdentityRepository = {
-  findByProvider(provider: AuthProviderType, providerId: string) {
-    return AuthIdentityModel.findOne({ provider, providerId }).exec();
+  findByProvider(provider: AuthProviderType, providerId: string, session?: ClientSession) {
+    return AuthIdentityModel.findOne({ provider, providerId }).session(session ?? null).exec();
   },
 
   create(userId: string, provider: AuthProviderType, providerId: string, session?: ClientSession) {

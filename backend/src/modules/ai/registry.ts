@@ -6,6 +6,7 @@ import { env } from '../../config/env';
 import type { ProviderAdapter } from './ai.types';
 import { createAnthropicAdapter } from './providers/anthropic.adapter';
 import { createGeminiAdapter } from './providers/gemini.adapter';
+import { createMistralAdapter } from './providers/mistral.adapter';
 import { createOpenAIAdapter } from './providers/openai.adapter';
 import { createUnconfiguredAdapter } from './providers/unconfigured.adapter';
 
@@ -27,6 +28,9 @@ function buildRegistry(): Record<AIProviderName, ProviderAdapter> {
     [AIProviderName.GEMINI]: env.GEMINI_API_KEY
       ? createGeminiAdapter(new GoogleGenAI({ apiKey: env.GEMINI_API_KEY }))
       : createUnconfiguredAdapter(AIProviderName.GEMINI),
+    [AIProviderName.MISTRAL]: env.MISTRAL_API_KEY
+      ? createMistralAdapter(new OpenAI({ apiKey: env.MISTRAL_API_KEY, baseURL: 'https://api.mistral.ai/v1' }))
+      : createUnconfiguredAdapter(AIProviderName.MISTRAL),
   };
 }
 

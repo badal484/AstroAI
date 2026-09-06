@@ -100,11 +100,23 @@ export const feedbackSchema = z.object({
 });
 export type FeedbackInput = z.infer<typeof feedbackSchema>;
 
+export const ConsultationStreamPhase = {
+  UNDERSTANDING: 'UNDERSTANDING',
+  ANALYZING_CHART: 'ANALYZING_CHART',
+  GENERATING: 'GENERATING',
+  STREAMING: 'STREAMING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+} as const;
+export type ConsultationStreamPhase =
+  (typeof ConsultationStreamPhase)[keyof typeof ConsultationStreamPhase];
+
 /** Socket.IO event contracts, shared so the mobile client and backend
  * never drift on payload shape. */
 export interface ChatServerToClientEvents {
   'message:created': (payload: { message: ChatMessage }) => void;
   'message:status': (payload: { messageId: string; status: MessageStatus }) => void;
+  'consultation:phase': (payload: { messageId: string; phase: ConsultationStreamPhase }) => void;
   'message:chunk': (payload: { messageId: string; delta: string }) => void;
   'message:complete': (payload: { message: ChatMessage }) => void;
   'message:error': (payload: { messageId: string; code: string; message: string }) => void;

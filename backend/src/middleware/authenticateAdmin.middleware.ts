@@ -9,7 +9,13 @@ import { asyncHandler } from '../shared/asyncHandler';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    admin?: { id: string; role: AdminRole; permissions: AdminPermission[] };
+    admin?: {
+      id: string;
+      email: string;
+      name: string;
+      role: AdminRole;
+      permissions: AdminPermission[];
+    };
   }
 }
 
@@ -35,12 +41,14 @@ export const authenticateAdmin = asyncHandler(
     const admin = await adminUserRepository.findById(payload.sub);
 
     if (!admin) throw new UnauthorizedError('Invalid admin session');
-    if (admin.status === AccountStatus.SUSPENDED || admin.status === AccountStatus.DELETED) {
+    if (admin.status !== AccountStatus.ACTIVE) {
       throw new AccountSuspendedError('This admin account has been deactivated');
     }
 
     req.admin = {
       id: admin._id.toString(),
+      email: admin.email,
+      name: admin.name,
       role: admin.role,
       permissions: permissionsForRole(admin.role),
     };

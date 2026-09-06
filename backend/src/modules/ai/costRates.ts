@@ -15,6 +15,9 @@ const RATES_PER_MILLION_TOKENS_USD: Record<string, { prompt: number; completion:
   'anthropic:claude-3-5-haiku-latest': { prompt: 0.8, completion: 4 },
   'gemini:gemini-2.5-pro': { prompt: 1.25, completion: 10 },
   'gemini:gemini-2.0-flash': { prompt: 0.1, completion: 0.4 },
+  'mistral:mistral-large-latest': { prompt: 2.0, completion: 6.0 },
+  'mistral:mistral-small-latest': { prompt: 0.2, completion: 0.6 },
+  'mistral:codestral-latest': { prompt: 0.3, completion: 0.9 },
 };
 
 export function estimateCostUsd(

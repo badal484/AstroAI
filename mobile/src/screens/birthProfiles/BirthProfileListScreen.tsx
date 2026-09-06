@@ -17,13 +17,14 @@ import {
 } from '../../lib/birthProfileApi';
 import { formatTime12Hour } from '../../lib/time';
 import type { AppStackParamList } from '../../navigation/AppStack';
+import { colors, radius, spacing, typography } from '../../theme';
 
 type Nav = NativeStackNavigationProp<AppStackParamList, 'BirthProfileList'>;
 
 const TIME_CONFIDENCE_LABEL: Record<BirthProfile['timeConfidence'], string> = {
-  exact: 'exact time',
-  approximate: 'approximate time',
-  unknown: 'time unknown',
+  exact: 'Exact Time',
+  approximate: 'Approximate Time',
+  unknown: 'Time Unknown',
 };
 
 export function BirthProfileListScreen() {
@@ -60,7 +61,7 @@ export function BirthProfileListScreen() {
   if (profilesQuery.isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.gold} />
       </View>
     );
   }
@@ -74,6 +75,7 @@ export function BirthProfileListScreen() {
             void profilesQuery.refetch();
           }}
           accessibilityRole="button"
+          style={styles.retryButton}
         >
           <Text style={styles.retryLink}>Try again</Text>
         </TouchableOpacity>
@@ -87,35 +89,49 @@ export function BirthProfileListScreen() {
     <View style={styles.screen}>
       <FlatList
         data={items}
-        keyExtractor={item => item.id}
-        contentContainerStyle={items.length === 0 && styles.emptyContainer}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={items.length === 0 ? styles.emptyContainer : styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>
+            <View style={styles.emptyIconBadge}>
+              <Text style={styles.emptyIconLetter}>K</Text>
+            </View>
             <Text style={styles.emptyTitle}>No birth profiles yet</Text>
             <Text style={styles.emptySubtitle}>
-              Add your birth details to get personalized readings.
+              Add birth details to compute your Lagna chart, planetary Dashas, and personalized readings.
             </Text>
           </View>
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.row}
+            style={styles.card}
             onPress={() =>
               navigation.navigate('BirthProfileForm', { profileId: item.id })
             }
             onLongPress={() => confirmDelete(item)}
             accessibilityRole="button"
+            activeOpacity={0.7}
           >
-            <View style={styles.rowText}>
-              <Text style={styles.rowName}>{item.name}</Text>
-              <Text style={styles.rowMeta}>
+            <View style={styles.cardHeader}>
+              <View style={styles.nameRow}>
+                <Text style={styles.cardName}>{item.name}</Text>
+                <View style={styles.confidenceBadge}>
+                  <Text style={styles.confidenceText}>
+                    {TIME_CONFIDENCE_LABEL[item.timeConfidence]}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.cardArrow}>›</Text>
+            </View>
+
+            <View style={styles.cardDetails}>
+              <Text style={styles.detailText}>
                 {item.dateOfBirth}
-                {item.birthTime
-                  ? ` · ${formatTime12Hour(item.birthTime)}`
-                  : ''}{' '}
-                · {TIME_CONFIDENCE_LABEL[item.timeConfidence]}
+                {item.birthTime ? ` • ${formatTime12Hour(item.birthTime)}` : ''}
               </Text>
-              <Text style={styles.rowMeta}>{item.location.canonicalName}</Text>
+              <Text style={styles.detailText}>
+                {item.location.canonicalName}
+              </Text>
             </View>
           </TouchableOpacity>
         )}
@@ -124,47 +140,140 @@ export function BirthProfileListScreen() {
         style={styles.addButton}
         onPress={() => navigation.navigate('BirthProfileForm', {})}
         accessibilityRole="button"
+        activeOpacity={0.8}
       >
-        <Text style={styles.addButtonText}>+ Add birth profile</Text>
+        <Text style={styles.addButtonText}>+ Add Birth Profile</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  listContent: {
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: spacing.md,
+    backgroundColor: colors.background,
   },
-  errorText: { color: '#c0392b' },
-  retryLink: { color: '#1a73e8' },
-  emptyContainer: { flexGrow: 1 },
+  errorText: {
+    ...typography.bodySecondary,
+    color: colors.danger,
+  },
+  retryButton: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  retryLink: {
+    ...typography.caption,
+    color: colors.goldLight,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flexGrow: 1,
+  },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    padding: spacing.xxl,
   },
-  emptyTitle: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
-  emptySubtitle: { fontSize: 13, color: '#6b6b75', textAlign: 'center' },
-  row: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f2',
-  },
-  rowText: { gap: 2 },
-  rowName: { fontSize: 15, fontWeight: '600' },
-  rowMeta: { fontSize: 12, color: '#6b6b75' },
-  addButton: {
-    backgroundColor: '#1a73e8',
-    paddingVertical: 14,
+  emptyIconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.backgroundCardElevated,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
     alignItems: 'center',
-    margin: 16,
-    borderRadius: 8,
+    justifyContent: 'center',
+    marginBottom: spacing.md,
   },
-  addButtonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  emptyIconLetter: {
+    fontSize: 22,
+  },
+  emptyTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  emptySubtitle: {
+    ...typography.bodySecondary,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 20,
+  },
+  card: {
+    backgroundColor: colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.xs,
+    gap: spacing.xs,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flex: 1,
+  },
+  cardName: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  confidenceBadge: {
+    backgroundColor: colors.backgroundHighlight,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+  },
+  confidenceText: {
+    ...typography.caption,
+    fontSize: 10,
+    color: colors.goldLight,
+    fontWeight: '600',
+  },
+  cardArrow: {
+    fontSize: 18,
+    color: colors.textMuted,
+  },
+  cardDetails: {
+    marginTop: spacing.xxs,
+    gap: 2,
+  },
+  detailText: {
+    ...typography.caption,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  addButton: {
+    backgroundColor: colors.gold,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    margin: spacing.md,
+    borderRadius: radius.md,
+  },
+  addButtonText: {
+    ...typography.body,
+    color: colors.textInverse,
+    fontWeight: '700',
+  },
 });

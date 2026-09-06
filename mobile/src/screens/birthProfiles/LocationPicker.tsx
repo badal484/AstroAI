@@ -12,6 +12,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { ApiError } from '../../lib/apiError';
 import { resolveLocation, searchLocations } from '../../lib/locationApi';
 import type { LocationSelection } from './types';
+import { colors, radius, spacing, typography } from '../../theme';
 
 interface Props {
   value: LocationSelection | null;
@@ -296,43 +297,47 @@ export function LocationPicker({ value, onChange }: Props) {
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
-    borderColor: '#d0d0d5',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.md,
+    backgroundColor: colors.backgroundInput,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
     fontSize: 15,
-    marginBottom: 8,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
   },
-  row: { flexDirection: 'row', gap: 8 },
+  row: { flexDirection: 'row', gap: spacing.xs },
   rowInput: { flex: 1 },
   rowInputSmall: { flex: 1 },
   spacingTop: { marginTop: 4 },
-  errorText: { color: '#c0392b', fontSize: 12, marginBottom: 8 },
-  hintText: { color: '#6b6b75', fontSize: 12, marginBottom: 8 },
+  errorText: { ...typography.caption, color: colors.danger, marginBottom: spacing.xs },
+  hintText: { ...typography.caption, color: colors.textMuted, marginBottom: spacing.xs },
   candidateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: '#e5e5ea',
-    borderRadius: 8,
-    marginBottom: 6,
+    borderColor: colors.borderSubtle,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
+    marginBottom: spacing.xs,
   },
-  candidateText: { fontSize: 14, flexShrink: 1 },
-  changeLink: { color: '#1a73e8', fontSize: 13, marginTop: 4, marginBottom: 8 },
+  candidateText: { fontSize: 14, color: colors.textPrimary, flexShrink: 1 },
+  changeLink: { ...typography.caption, color: colors.goldLight, fontWeight: '600', marginTop: 4, marginBottom: spacing.xs },
   selectedCard: {
     borderWidth: 1,
-    borderColor: '#d0d0d5',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: colors.borderGold,
+    backgroundColor: colors.backgroundHighlight,
+    borderRadius: radius.md,
+    padding: spacing.md,
   },
-  selectedName: { fontSize: 15, fontWeight: '600' },
+  selectedName: { ...typography.body, fontWeight: '700', color: colors.textPrimary },
   selectedMeta: {
-    fontSize: 13,
-    color: '#6b6b75',
+    ...typography.caption,
+    color: colors.textSecondary,
     marginTop: 2,
-    marginBottom: 8,
+    marginBottom: spacing.xs,
   },
 });

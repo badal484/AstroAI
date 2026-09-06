@@ -69,7 +69,7 @@ describe('ConversationListScreen', () => {
 
     await renderScreen();
 
-    expect(await screen.findByText('No conversations yet')).toBeTruthy();
+    expect(await screen.findByText('No consultations yet')).toBeTruthy();
   });
 
   test('lists existing conversations', async () => {
@@ -83,17 +83,17 @@ describe('ConversationListScreen', () => {
     expect(await screen.findByText('Career question')).toBeTruthy();
   });
 
-  test('tapping "+ New chat" creates a conversation and navigates to it', async () => {
+  test('tapping "+ New Consultation" creates a conversation and navigates to it', async () => {
     mockListConversations.mockResolvedValue({ items: [], nextCursor: null });
     mockCreateConversation.mockResolvedValue(
       sampleConversation({ id: 'new-conv', title: 'New reading' }),
     );
 
     await renderScreen();
-    await screen.findByText('No conversations yet');
+    await screen.findByText('No consultations yet');
 
     await act(async () => {
-      fireEvent.press(screen.getByText('+ New chat'));
+      fireEvent.press(screen.getByText('+ New Consultation'));
       await new Promise<void>(resolve => setTimeout(() => resolve(), 0));
     });
 
@@ -114,10 +114,10 @@ describe('ConversationListScreen', () => {
     );
 
     await renderScreen();
-    await screen.findByText('No conversations yet');
+    await screen.findByText('No consultations yet');
 
     await act(async () => {
-      fireEvent.press(screen.getByText('+ New chat'));
+      fireEvent.press(screen.getByText('+ New Consultation'));
       await new Promise<void>(resolve => setTimeout(() => resolve(), 0));
     });
 

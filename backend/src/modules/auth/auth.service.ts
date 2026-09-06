@@ -7,6 +7,7 @@ import {
   InvalidCredentialsError,
 } from '../../shared/errors';
 import { signAccessToken } from '../../shared/tokens';
+import { eventBus } from '../../shared/eventBus';
 import { userService, toAuthUser, type UserDocument } from '../users';
 import { authIdentityRepository } from './authIdentity.repository';
 import { userSessionService, type IssuedSession, type SessionMeta } from './session';
@@ -45,7 +46,13 @@ async function findOrCreateUserByIdentity(
   const mongoSession = await mongoose.startSession();
   try {
     let created: UserDocument | undefined;
+    let isNew = false;
     await mongoSession.withTransaction(async () => {
+      const inner = await authIdentityRepository.findByProvider(provider, identity.providerId, mongoSession);
+      if (inner) {
+        created = await userService.getById(inner.userId.toString());
+        return;
+      }
       const user = await userService.createUser(
         { email: identity.email, name: identity.name, avatarUrl: identity.avatarUrl },
         mongoSession,
@@ -57,8 +64,23 @@ async function findOrCreateUserByIdentity(
         mongoSession,
       );
       created = user;
+      isNew = true;
     });
-    if (!created) throw new InvalidCredentialsError('Failed to create account');
+
+    if (!created) {
+      const winner = await authIdentityRepository.findByProvider(provider, identity.providerId);
+      if (winner) return userService.getById(winner.userId.toString());
+      throw new InvalidCredentialsError('Failed to create account');
+    }
+
+    if (isNew) {
+      eventBus.emit('user.registered', {
+        userId: created._id.toString(),
+        email: created.email,
+        name: created.name,
+      });
+    }
+
     return created;
   } catch (error) {
     // Concurrent duplicate sign-in race: another request created the same
@@ -75,7 +97,12 @@ async function findOrCreateUserByIdentity(
 }
 
 function isDuplicateKeyError(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 11000;
+  if (typeof error !== 'object' || error === null) return false;
+  const anyErr = error as any;
+  if (anyErr.code === 11000 || anyErr.codeName === 'DuplicateKey') return true;
+  if (typeof anyErr.message === 'string' && anyErr.message.includes('E11000 duplicate key error')) return true;
+  if (Array.isArray(anyErr.writeErrors) && anyErr.writeErrors.some((e: any) => e.code === 11000)) return true;
+  return false;
 }
 
 function buildAuthResponse(user: UserDocument, session: IssuedSession): AuthResponse {

@@ -30,22 +30,22 @@ const WITH_BIRTH_PROFILE: Record<SupportedLanguage, string[]> = {
 
 const WITHOUT_BIRTH_PROFILE: Record<SupportedLanguage, string[]> = {
   [SupportedLanguage.ENGLISH]: [
-    'What is Vedic astrology and how does it work?',
-    'What is a moon sign, and how is it different from a sun sign?',
-    'What is a nakshatra?',
-    'Can you explain what a dasha period is?',
+    'When will I get married according to my chart?',
+    'When will I get a new job or career growth?',
+    'What will my life partner be like?',
+    'How is my financial outlook and wealth timing?',
   ],
   [SupportedLanguage.HINDI]: [
-    'वैदिक ज्योतिष क्या है और यह कैसे काम करता है?',
-    'चंद्र राशि क्या है, और यह सूर्य राशि से कैसे अलग है?',
-    'नक्षत्र क्या होता है?',
-    'क्या आप बता सकते हैं कि दशा क्या होती है?',
+    'मेरी शादी कब होगी?',
+    'नौकरी और करियर में तरक्की कब होगी?',
+    'मेरा जीवनसाथी कैसा होगा?',
+    'आर्थिक स्थिति और धन लाभ के योग कब हैं?',
   ],
   [SupportedLanguage.HINGLISH]: [
-    'Vedic astrology kya hai aur yeh kaise kaam karta hai?',
-    'Moon sign kya hota hai, aur yeh sun sign se kaise alag hai?',
-    'Nakshatra kya hota hai?',
-    'Dasha period kya hota hai, thoda explain kar sakte hain?',
+    'Meri shadi kab hogi?',
+    'Naukri ya career me tarakki kab hogi?',
+    'Mera jeevansathi kaisa hoga?',
+    'Aarthik sthiti aur dhan labh ke yog kab hain?',
   ],
 };
 

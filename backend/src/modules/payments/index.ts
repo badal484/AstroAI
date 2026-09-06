@@ -1,9 +1,9 @@
-/**
- * payments module — scaffold only.
- *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
- */
-export {};
+export * from './paymentOrder.model';
+export * from './paymentTransaction.model';
+export * from './paymentRefund.model';
+export * from './paymentWebhookEvent.model';
+export * from './payment.repository';
+export * from './payment.service';
+export * from './payment.controller';
+export * from './payment.routes';
+export * from './razorpayGateway';

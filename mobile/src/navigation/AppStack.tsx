@@ -4,6 +4,18 @@ import { BirthProfileFormScreen } from '../screens/birthProfiles/BirthProfileFor
 import { BirthProfileListScreen } from '../screens/birthProfiles/BirthProfileListScreen';
 import { ChatScreen } from '../screens/chat/ChatScreen';
 import { ConversationListScreen } from '../screens/chat/ConversationListScreen';
+import { WalletScreen } from '../screens/wallet/WalletScreen';
+import { VoiceCallScreen } from '../screens/voice/VoiceCallScreen';
+import { ReportCatalogScreen } from '../screens/reports/ReportCatalogScreen';
+import { ReportHistoryScreen } from '../screens/reports/ReportHistoryScreen';
+import { ReportViewerScreen } from '../screens/reports/ReportViewerScreen';
+import { NotificationCenterScreen } from '../screens/notifications/NotificationCenterScreen';
+import { NotificationPreferencesScreen } from '../screens/notifications/NotificationPreferencesScreen';
+import { ReferralScreen } from '../screens/promotions/ReferralScreen';
+import { KundliExplorerScreen } from '../screens/astrology/KundliExplorerScreen';
+import { CompatibilityScreen } from '../screens/astrology/CompatibilityScreen';
+import { SettingsScreen } from '../screens/settings/SettingsScreen';
+import { colors } from '../theme';
 
 export type AppStackParamList = {
   Home: undefined;
@@ -11,6 +23,17 @@ export type AppStackParamList = {
   BirthProfileForm: { profileId?: string };
   ConversationList: undefined;
   Chat: { conversationId: string; title?: string };
+  Wallet: undefined;
+  VoiceCall: { astrologerId?: string; astrologerName?: string; birthProfileId?: string | null };
+  ReportCatalog: { initialType?: string } | undefined;
+  ReportHistory: undefined;
+  ReportViewer: { reportId: string };
+  NotificationCenter: undefined;
+  NotificationPreferences: undefined;
+  Referral: undefined;
+  KundliExplorer: undefined;
+  Compatibility: undefined;
+  Settings: undefined;
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -24,11 +47,19 @@ const Stack = createNativeStackNavigator<AppStackParamList>();
  */
 export function AppStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.backgroundElevated },
+        headerTintColor: colors.textPrimary,
+        headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
       <Stack.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: 'AstroAI' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="BirthProfileList"
@@ -47,12 +78,67 @@ export function AppStack() {
       <Stack.Screen
         name="ConversationList"
         component={ConversationListScreen}
-        options={{ title: 'Chats' }}
+        options={{ title: 'Conversations' }}
       />
       <Stack.Screen
         name="Chat"
         component={ChatScreen}
-        options={({ route }) => ({ title: route.params.title ?? 'Chat' })}
+        options={({ route }) => ({ title: route.params.title || 'Acharya Vashishta' })}
+      />
+      <Stack.Screen
+        name="Wallet"
+        component={WalletScreen}
+        options={{ title: 'Wallet & Credits' }}
+      />
+      <Stack.Screen
+        name="VoiceCall"
+        component={VoiceCallScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ReportCatalog"
+        component={ReportCatalogScreen}
+        options={{ title: 'Astrology Reports' }}
+      />
+      <Stack.Screen
+        name="ReportHistory"
+        component={ReportHistoryScreen}
+        options={{ title: 'Report History' }}
+      />
+      <Stack.Screen
+        name="ReportViewer"
+        component={ReportViewerScreen}
+        options={{ title: 'Report Details' }}
+      />
+      <Stack.Screen
+        name="NotificationCenter"
+        component={NotificationCenterScreen}
+        options={{ title: 'Notifications' }}
+      />
+      <Stack.Screen
+        name="NotificationPreferences"
+        component={NotificationPreferencesScreen}
+        options={{ title: 'Notification Settings' }}
+      />
+      <Stack.Screen
+        name="Referral"
+        component={ReferralScreen}
+        options={{ title: 'Invite Friends & Rewards' }}
+      />
+      <Stack.Screen
+        name="KundliExplorer"
+        component={KundliExplorerScreen}
+        options={{ title: 'Kundli Explorer' }}
+      />
+      <Stack.Screen
+        name="Compatibility"
+        component={CompatibilityScreen}
+        options={{ title: 'Kundli Milan (36 Guna)' }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: 'Settings & Profile' }}
       />
     </Stack.Navigator>
   );

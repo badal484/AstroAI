@@ -41,6 +41,7 @@ import {
   parseISODateToLocalDate,
 } from '../../lib/time';
 import type { AppStackParamList } from '../../navigation/AppStack';
+import { colors, radius, spacing, typography } from '../../theme';
 import { LocationPicker } from './LocationPicker';
 import type { LocationSelection } from './types';
 
@@ -414,63 +415,107 @@ export function BirthProfileFormScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20, paddingBottom: 48 },
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    padding: spacing.lg,
+    paddingBottom: 48,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
   label: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 6,
-    color: '#3a3a42',
+    ...typography.caption,
+    fontWeight: '700',
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    color: colors.textSecondary,
+    letterSpacing: 0.5,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d0d0d5',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.md,
+    backgroundColor: colors.backgroundInput,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
     fontSize: 15,
+    color: colors.textPrimary,
   },
   pickerField: {
     borderWidth: 1,
-    borderColor: '#d0d0d5',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.md,
+    backgroundColor: colors.backgroundInput,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
-  pickerFieldText: { fontSize: 15 },
-  errorText: { color: '#c0392b', fontSize: 12, marginTop: 4 },
-  hintText: { color: '#6b6b75', fontSize: 12, marginTop: 4 },
-  doneLink: {
-    color: '#1a73e8',
-    fontSize: 14,
-    textAlign: 'right',
+  pickerFieldText: {
+    fontSize: 15,
+    color: colors.textPrimary,
+  },
+  errorText: {
+    ...typography.caption,
+    color: colors.danger,
     marginTop: 4,
-    marginBottom: 8,
   },
-  confidenceRow: { flexDirection: 'row', gap: 8 },
+  hintText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    marginTop: 4,
+  },
+  doneLink: {
+    ...typography.caption,
+    color: colors.goldLight,
+    fontWeight: '600',
+    textAlign: 'right',
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  confidenceRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
   confidenceChip: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#d0d0d5',
+    borderColor: colors.borderSubtle,
+    backgroundColor: colors.backgroundCard,
     alignItems: 'center',
   },
   confidenceChipSelected: {
-    backgroundColor: '#1a73e8',
-    borderColor: '#1a73e8',
+    backgroundColor: colors.backgroundHighlight,
+    borderColor: colors.borderGold,
   },
-  confidenceChipText: { fontSize: 13, color: '#3a3a42' },
-  confidenceChipTextSelected: { color: '#fff', fontWeight: '600' },
+  confidenceChipText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  confidenceChipTextSelected: {
+    color: colors.goldLight,
+    fontWeight: '700',
+  },
   submitButton: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 8,
-    paddingVertical: 14,
+    backgroundColor: colors.gold,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: spacing.xl,
   },
-  submitButtonDisabled: { opacity: 0.6 },
-  submitButtonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
+  submitButtonText: {
+    ...typography.body,
+    color: colors.textInverse,
+    fontWeight: '700',
+  },
 });

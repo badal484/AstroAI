@@ -94,3 +94,23 @@ async function forceLogout(): Promise<void> {
   await secureStorage.clearRefreshToken();
   useAuthStore.getState().setUnauthenticated();
 }
+
+export const apiClient = {
+  get: <T>(path: string, options?: RequestOptions) =>
+    apiRequest<T>(path, { method: 'GET' }, options).then((data) => ({ data })),
+  post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    apiRequest<T>(
+      path,
+      { method: 'POST', body: body ? JSON.stringify(body) : undefined },
+      options,
+    ).then((data) => ({ data })),
+  put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    apiRequest<T>(
+      path,
+      { method: 'PUT', body: body ? JSON.stringify(body) : undefined },
+      options,
+    ).then((data) => ({ data })),
+  delete: <T>(path: string, options?: RequestOptions) =>
+    apiRequest<T>(path, { method: 'DELETE' }, options).then((data) => ({ data })),
+};
+

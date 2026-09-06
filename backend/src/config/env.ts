@@ -87,8 +87,19 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  MISTRAL_API_KEY: z.string().optional(),
   // Bounds shared by every provider adapter call (CLAUDE.md §40).
   AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(20_000),
+
+  // Razorpay Payment Gateway (CLAUDE.md §3)
+  RAZORPAY_KEY_ID: z.string().optional(),
+  RAZORPAY_KEY_SECRET: z.string().optional(),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+
+  // Voice Pipeline: STT & TTS Providers
+  DEEPGRAM_API_KEY: z.string().optional(),
+  ELEVENLABS_API_KEY: z.string().optional(),
+  ELEVENLABS_VOICE_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

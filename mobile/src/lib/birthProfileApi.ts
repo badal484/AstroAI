@@ -35,3 +35,17 @@ export function updateBirthProfile(
 export function deleteBirthProfile(id: string): Promise<{ success: true }> {
   return apiRequest(`/api/v1/birth-profiles/${id}`, { method: 'DELETE' });
 }
+
+export const birthProfileApi = {
+  list: listBirthProfiles,
+  listBirthProfiles,
+  get: getBirthProfile,
+  getBirthProfile,
+  create: createBirthProfile,
+  createBirthProfile,
+  update: updateBirthProfile,
+  updateBirthProfile,
+  delete: deleteBirthProfile,
+  deleteBirthProfile,
+};
+

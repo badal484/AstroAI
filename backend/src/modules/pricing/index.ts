@@ -1,9 +1,8 @@
-/**
- * pricing module — scaffold only.
- *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
- */
-export {};
+export { pricingService } from './pricing.service';
+export { pricingRouter, adminPricingRouter } from './pricing.routes';
+export { pricingController } from './pricing.controller';
+export type {
+  CalculatedChatCost,
+  CalculatedVoiceCost,
+  CalculatedReportCost,
+} from './pricing.service';

@@ -19,6 +19,7 @@ import {
 } from '../../lib/chatApi';
 import { formatRelativeTime } from '../../lib/relativeTime';
 import type { AppStackParamList } from '../../navigation/AppStack';
+import { colors, radius, spacing, typography } from '../../theme';
 
 type Nav = NativeStackNavigationProp<AppStackParamList, 'ConversationList'>;
 
@@ -33,15 +34,11 @@ export function ConversationListScreen() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      // A nice-to-have default, not a hard requirement: if the user has a
-      // birth profile already, link the most recent one automatically so
-      // the conversation has real astrology context from its first
-      // message, without making "new chat" a multi-step flow.
       const profiles = await listBirthProfiles().catch(() => ({ items: [] }));
       const birthProfileId = profiles.items[0]?.id;
       return createConversation(birthProfileId ? { birthProfileId } : {});
     },
-    onSuccess: async conversation => {
+    onSuccess: async (conversation) => {
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       navigation.navigate('Chat', {
         conversationId: conversation.id,
@@ -50,7 +47,7 @@ export function ConversationListScreen() {
     },
     onError: () => {
       Alert.alert(
-        "Couldn't start a new chat",
+        "Couldn't start consultation",
         'Please check your connection and try again.',
       );
     },
@@ -65,8 +62,8 @@ export function ConversationListScreen() {
 
   function confirmDelete(conversation: Conversation) {
     Alert.alert(
-      'Delete conversation',
-      `Delete "${conversation.title}"? This cannot be undone.`,
+      'Delete consultation',
+      `Remove "${conversation.title}"? This cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -81,7 +78,7 @@ export function ConversationListScreen() {
   if (conversationsQuery.isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color={colors.gold} />
       </View>
     );
   }
@@ -89,12 +86,13 @@ export function ConversationListScreen() {
   if (conversationsQuery.isError) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.errorText}>Couldn't load your conversations.</Text>
+        <Text style={styles.errorText}>Unable to load your consultations.</Text>
         <TouchableOpacity
           onPress={() => {
             void conversationsQuery.refetch();
           }}
           accessibilityRole="button"
+          style={styles.retryButton}
         >
           <Text style={styles.retryLink}>Try again</Text>
         </TouchableOpacity>
@@ -108,20 +106,22 @@ export function ConversationListScreen() {
     <View style={styles.screen}>
       <FlatList
         data={items}
-        keyExtractor={item => item.id}
-        contentContainerStyle={items.length === 0 && styles.emptyContainer}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={items.length === 0 ? styles.emptyContainer : styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyTitle}>No conversations yet</Text>
+            <View style={styles.emptyAvatarBadge}>
+              <Text style={styles.emptyAvatarLetter}>V</Text>
+            </View>
+            <Text style={styles.emptyTitle}>No consultations yet</Text>
             <Text style={styles.emptySubtitle}>
-              Ask Astra anything — love, career, today's outlook, or just what
-              your chart means.
+              Consult with Acharya Vashishta on career timing, marriage, wealth, and your planetary Dasha.
             </Text>
           </View>
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.row}
+            style={styles.card}
             onPress={() =>
               navigation.navigate('Chat', {
                 conversationId: item.id,
@@ -130,17 +130,22 @@ export function ConversationListScreen() {
             }
             onLongPress={() => confirmDelete(item)}
             accessibilityRole="button"
+            activeOpacity={0.7}
           >
-            <View style={styles.rowText}>
-              <Text style={styles.rowTitle} numberOfLines={1}>
+            <View style={styles.cardIconBadge}>
+              <Text style={styles.cardIconLetter}>V</Text>
+            </View>
+            <View style={styles.cardBody}>
+              <Text style={styles.cardTitle} numberOfLines={1}>
                 {item.title}
               </Text>
               {item.lastMessageAt && (
-                <Text style={styles.rowMeta}>
+                <Text style={styles.cardMeta}>
                   {formatRelativeTime(item.lastMessageAt)}
                 </Text>
               )}
             </View>
+            <Text style={styles.cardArrow}>›</Text>
           </TouchableOpacity>
         )}
       />
@@ -152,11 +157,12 @@ export function ConversationListScreen() {
         onPress={() => createMutation.mutate()}
         disabled={createMutation.isPending}
         accessibilityRole="button"
+        activeOpacity={0.8}
       >
         {createMutation.isPending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.textInverse} />
         ) : (
-          <Text style={styles.newChatButtonText}>+ New chat</Text>
+          <Text style={styles.newChatButtonText}>+ New Consultation</Text>
         )}
       </TouchableOpacity>
     </View>
@@ -164,40 +170,129 @@ export function ConversationListScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  listContent: {
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: spacing.md,
+    backgroundColor: colors.background,
   },
-  errorText: { color: '#c0392b' },
-  retryLink: { color: '#1a73e8' },
-  emptyContainer: { flexGrow: 1 },
+  errorText: {
+    ...typography.bodySecondary,
+    color: colors.danger,
+  },
+  retryButton: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  retryLink: {
+    ...typography.caption,
+    color: colors.goldLight,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flexGrow: 1,
+  },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    padding: spacing.xxl,
   },
-  emptyTitle: { fontSize: 16, fontWeight: '600', marginBottom: 6 },
-  emptySubtitle: { fontSize: 13, color: '#6b6b75', textAlign: 'center' },
-  row: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f2',
-  },
-  rowText: { gap: 3 },
-  rowTitle: { fontSize: 15, fontWeight: '600' },
-  rowMeta: { fontSize: 12, color: '#6b6b75' },
-  newChatButton: {
-    backgroundColor: '#1a73e8',
-    paddingVertical: 14,
+  emptyAvatarBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.backgroundCardElevated,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
     alignItems: 'center',
-    margin: 16,
-    borderRadius: 8,
+    justifyContent: 'center',
+    marginBottom: spacing.md,
   },
-  newChatButtonDisabled: { opacity: 0.6 },
-  newChatButtonText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  emptyAvatarLetter: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.gold,
+  },
+  emptyTitle: {
+    ...typography.h3,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  emptySubtitle: {
+    ...typography.bodySecondary,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 20,
+  },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.xs,
+    gap: spacing.sm,
+  },
+  cardIconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
+    backgroundColor: colors.backgroundHighlight,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardIconLetter: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.gold,
+  },
+  cardBody: {
+    flex: 1,
+    gap: 3,
+  },
+  cardTitle: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  cardMeta: {
+    ...typography.caption,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  cardArrow: {
+    fontSize: 18,
+    color: colors.textMuted,
+    paddingRight: 4,
+  },
+  newChatButton: {
+    backgroundColor: colors.gold,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    margin: spacing.md,
+    borderRadius: radius.md,
+  },
+  newChatButtonDisabled: {
+    opacity: 0.5,
+  },
+  newChatButtonText: {
+    ...typography.body,
+    color: colors.textInverse,
+    fontWeight: '700',
+  },
 });

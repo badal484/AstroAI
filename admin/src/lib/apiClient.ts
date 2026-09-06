@@ -63,3 +63,25 @@ async function tryRefresh(): Promise<boolean> {
     return false;
   }
 }
+
+export function apiGet<T>(path: string): Promise<T> {
+  return apiRequest<T>(path, { method: 'GET' });
+}
+
+export function apiPost<T>(path: string, body?: unknown): Promise<T> {
+  return apiRequest<T>(path, {
+    method: 'POST',
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+}
+
+export function apiPut<T>(path: string, body?: unknown): Promise<T> {
+  return apiRequest<T>(path, {
+    method: 'PUT',
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+}
+
+export function apiDelete<T>(path: string): Promise<T> {
+  return apiRequest<T>(path, { method: 'DELETE' });
+}

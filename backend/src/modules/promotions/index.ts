@@ -1,9 +1,5 @@
-/**
- * promotions module — scaffold only.
- *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
- */
-export {};
+export * from './promotions.service';
+export * from './referral.service';
+export * from './promotions.routes';
+export * from './adminPromotions.routes';
+export * from './defaultPromotions';

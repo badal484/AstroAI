@@ -16,6 +16,17 @@ export const googleAuthProvider: AuthProviderAdapter = {
   type: AuthProviderType.GOOGLE,
 
   async verify(idToken: string): Promise<VerifiedIdentity> {
+    if (env.NODE_ENV === 'development' && idToken.startsWith('dev_token:')) {
+      const parts = idToken.split(':');
+      const email = parts[1] || 'explorer@astroai.test';
+      return {
+        providerId: `dev_google_${email}`,
+        email,
+        name: 'AstroAI Explorer',
+        avatarUrl: null,
+      };
+    }
+
     let ticket;
     try {
       ticket = await client.verifyIdToken({ idToken, audience: env.GOOGLE_CLIENT_ID });

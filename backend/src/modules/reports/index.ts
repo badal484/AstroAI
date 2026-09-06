@@ -1,9 +1,8 @@
-/**
- * reports module — scaffold only.
- *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
- */
-export {};
+export * from './report.model';
+export * from './report.repository';
+export * from './report.service';
+export * from './report.controller';
+export * from './report.routes';
+export * from './jobs/reportQueue';
+export * from './pdf/pdfGenerator';
+export * from './storage/reportStorage';

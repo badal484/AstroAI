@@ -1,9 +1,10 @@
 /**
- * compatibility module — scaffold only.
+ * Compatibility Module Public Surface
  *
- * Business logic is not implemented yet. When this module is built, it
- * should expose its public surface (routes/service) only through this
- * index.ts, per ARCHITECTURE.md §2 ("Cross-module communication") — other
- * modules must never import this module's repository or model directly.
+ * Exposes domain types, dataset normalizer, validator, and importer.
  */
-export {};
+
+export * from './domain/compatibility.types';
+export * from './data/dataset-normalizer';
+export * from './data/dataset-validator';
+export * from './data/dataset-importer';

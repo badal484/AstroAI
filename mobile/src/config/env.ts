@@ -25,25 +25,20 @@ const environments: Record<'development' | 'staging' | 'production', Env> = {
   development: {
     environment: 'development',
     apiBaseUrl: 'http://localhost:4000',
-    // TODO: replace with a real Google Cloud OAuth Web client ID —
-    // see docs/ENVIRONMENT.md. Google Sign-In fails clearly with this
-    // placeholder rather than silently pretending to work.
     googleWebClientId:
-      'REPLACE_WITH_REAL_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
+      '1613467594-a2g5gvi16b8o3acucq4lg9cvoenfjfe8.apps.googleusercontent.com',
   },
   staging: {
     environment: 'staging',
-    // TODO: replace with the real staging API host once provisioned.
     apiBaseUrl: 'https://staging-api.astroai.example.com',
     googleWebClientId:
-      'REPLACE_WITH_REAL_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
+      '1613467594-a2g5gvi16b8o3acucq4lg9cvoenfjfe8.apps.googleusercontent.com',
   },
   production: {
     environment: 'production',
-    // TODO: replace with the real production API host once provisioned.
     apiBaseUrl: 'https://api.astroai.example.com',
     googleWebClientId:
-      'REPLACE_WITH_REAL_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com',
+      '1613467594-a2g5gvi16b8o3acucq4lg9cvoenfjfe8.apps.googleusercontent.com',
   },
 };
 

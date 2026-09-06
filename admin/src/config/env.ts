@@ -15,7 +15,8 @@ export type Env = z.infer<typeof envSchema>;
 
 function loadEnv(): Env {
   const parsed = envSchema.safeParse({
-    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    NEXT_PUBLIC_API_BASE_URL:
+      process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000',
   });
 
   if (!parsed.success) {

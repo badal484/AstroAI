@@ -9,8 +9,10 @@ import {
   type SendMessageInput,
 } from '@astroai/shared-types';
 import { generateAstrologerResponse } from '../astrologer';
+import { intentEngine } from '../astrologer-intelligence/intent/intentEngine';
 import { userService } from '../users';
 import { AppError, ConflictError, NotFoundError, ValidationError } from '../../shared/errors';
+import { eventBus } from '../../shared/eventBus';
 import { logger } from '../../shared/logger';
 import { conversationRepository } from './conversation.repository';
 import { conversationService } from './conversation.service';
@@ -96,6 +98,12 @@ export const chatService = {
       conversation.title,
       input.content,
     );
+
+    eventBus.emit('chat.firstMessage', {
+      userId,
+      conversationId,
+      title: conversation.title || input.content.slice(0, 30),
+    });
 
     const assistantDoc = await messageRepository.create({
       conversationId,
@@ -211,6 +219,7 @@ async function runGeneration(
   try {
     await messageRepository.update(assistantMessageId, { status: MessageStatus.STREAMING });
     chatSocket.messageStatus(conversationId, assistantMessageId, MessageStatus.STREAMING);
+    chatSocket.consultationPhase(conversationId, assistantMessageId, 'UNDERSTANDING');
 
     const history = await messageRepository.findCompletedHistory(conversationId, HISTORY_WINDOW);
     const triggerUserMessage = [...history]
@@ -224,10 +233,21 @@ async function runGeneration(
       .filter((message) => message._id.toString() !== triggerUserMessage._id.toString())
       .map((message) => ({ role: message.role, content: message.content }));
 
-    const user = await userService.getById(userId);
+    const [user] = await Promise.all([userService.getById(userId)]);
+
+    const detected = intentEngine.detectIntents(triggerUserMessage.content);
+    if (
+      conversation.birthProfileId &&
+      (detected.astrologyRelevance === 'REQUIRED' || detected.astrologyRelevance === 'USEFUL')
+    ) {
+      chatSocket.consultationPhase(conversationId, assistantMessageId, 'ANALYZING_CHART');
+    }
+
+    chatSocket.consultationPhase(conversationId, assistantMessageId, 'GENERATING');
 
     const result = await generateAstrologerResponse({
       userId,
+      conversationId,
       birthProfileId: conversation.birthProfileId ? conversation.birthProfileId.toString() : null,
       conversationHistory,
       userMessage: triggerUserMessage.content,
@@ -256,7 +276,9 @@ async function runGeneration(
     });
     await conversationService.touchLastMessageAt(conversationId, result.language);
 
+    chatSocket.consultationPhase(conversationId, assistantMessageId, 'STREAMING');
     await replayAsChunks(conversationId, assistantMessageId, result.responseText);
+    chatSocket.consultationPhase(conversationId, assistantMessageId, 'COMPLETED');
     chatSocket.messageComplete(conversationId, toChatMessage(updated!));
 
     // Billing integration point (CLAUDE.md's "do not charge for failed AI
@@ -274,6 +296,7 @@ async function runGeneration(
       errorCode: code,
       errorMessage: safeMessage,
     });
+    chatSocket.consultationPhase(conversationId, assistantMessageId, 'FAILED');
     chatSocket.messageError(conversationId, assistantMessageId, code, safeMessage);
     logger.error(
       { err: error, conversationId, assistantMessageId },

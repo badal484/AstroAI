@@ -51,7 +51,7 @@ async function createConversation(authHeader: string) {
     .post('/api/v1/conversations')
     .set('Authorization', authHeader)
     .send({});
-  return res.body.data as { id: string };
+  return (res.body?.data ?? res.body) as { id: string };
 }
 
 async function waitForTerminalStatus(
@@ -65,9 +65,8 @@ async function waitForTerminalStatus(
     const res = await request(app)
       .get(`/api/v1/conversations/${conversationId}/messages`)
       .set('Authorization', authHeader);
-    const message = (res.body.data.items as { id: string; status: string }[]).find(
-      (m) => m.id === messageId,
-    );
+    const items = (res.body?.data?.items as { id: string; status: string }[] | undefined) ?? [];
+    const message = items.find((m) => m.id === messageId);
     if (message && (message.status === 'complete' || message.status === 'failed')) {
       return message as {
         id: string;

@@ -7,6 +7,8 @@ import { notFoundMiddleware } from './middleware/notFound.middleware';
 import { defaultRateLimiter } from './middleware/rateLimiter.middleware';
 import { requestIdMiddleware } from './middleware/requestId.middleware';
 import { corsMiddleware, securityHeaders } from './middleware/security.middleware';
+import { registerNotificationListeners, notificationService } from './modules/notifications';
+import { promotionsService } from './modules/promotions';
 import { v1Router } from './routes/v1';
 
 /**
@@ -15,6 +17,10 @@ import { v1Router } from './routes/v1';
  * in tests without binding a port or touching Mongo/Redis.
  */
 export function createApp(): Express {
+  registerNotificationListeners();
+  void notificationService.seedDefaultTemplates().catch(() => undefined);
+  void promotionsService.seedDefaults().catch(() => undefined);
+
   const app = express();
 
   app.disable('x-powered-by');
@@ -24,7 +30,14 @@ export function createApp(): Express {
   app.use(httpLoggerMiddleware);
   app.use(securityHeaders);
   app.use(corsMiddleware);
-  app.use(express.json({ limit: '1mb' }));
+  app.use(
+    express.json({
+      limit: '1mb',
+      verify: (req, _res, buf) => {
+        (req as unknown as { rawBody?: Buffer }).rawBody = buf;
+      },
+    }),
+  );
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
   app.use(cookieParser());
   app.use(defaultRateLimiter);

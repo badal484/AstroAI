@@ -1,10 +1,16 @@
-import type { AstrologyChart, CompatibilityScore, Transit } from '@astroai/shared-types';
+import type {
+  AshtakootaScoreDTO,
+  AstrologyChart,
+  CompatibilityScore,
+  Transit,
+} from '@astroai/shared-types';
 import { redis } from '../../lib/redis';
 import { eventBus } from '../../shared/eventBus';
 import { logger } from '../../shared/logger';
 import { birthProfileService } from '../birthProfiles';
 import { astrologyRepository } from './astrology.repository';
 import { applyPrecisionPolicy, toAstrologyChart, toEngineInput } from './astrology.types';
+import { calculateAshtakoota } from './engine/ashtakoota';
 import { CURRENT_CALCULATION_VERSION, currentEngine } from './engine/registry';
 
 // Transits are a snapshot for a given calendar date — safe to cache for
@@ -84,6 +90,28 @@ export const astrologyService = {
       score,
     });
     return doc.score;
+  },
+
+  async getAshtakootaCompatibility(
+    userId: string,
+    birthProfileIdA: string,
+    birthProfileIdB: string,
+  ): Promise<{
+    chartA: AstrologyChart;
+    chartB: AstrologyChart;
+    compatibility: AshtakootaScoreDTO;
+  }> {
+    const [chartA, chartB] = await Promise.all([
+      astrologyService.getChart(userId, birthProfileIdA),
+      astrologyService.getChart(userId, birthProfileIdB),
+    ]);
+
+    const compatibility = calculateAshtakoota(chartA, chartB);
+    return {
+      chartA,
+      chartB,
+      compatibility,
+    };
   },
 
   async invalidateForBirthProfile(birthProfileId: string): Promise<void> {

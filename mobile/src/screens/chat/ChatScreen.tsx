@@ -30,18 +30,21 @@ import {
 import { generateClientId } from '../../lib/id';
 import type { AppStackParamList } from '../../navigation/AppStack';
 import { MessageBubble } from './MessageBubble';
+import { CreditBalanceBadge } from '../../components/ui/CreditBalanceBadge';
+import { PricingCostPill } from '../../components/ui/PricingCostPill';
+import { colors, radius, spacing, typography } from '../../theme';
 
 type ChatRoute = RouteProp<AppStackParamList, 'Chat'>;
 
 const LANGUAGE_OPTIONS: { value: SupportedLanguage; label: string }[] = [
-  { value: 'en', label: 'EN' },
-  { value: 'hi', label: 'हिं' },
+  { value: 'en', label: 'English' },
+  { value: 'hi', label: 'हिंदी' },
   { value: 'hinglish', label: 'Hinglish' },
 ];
 
 function sendErrorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
-  return "Couldn't connect. Check your internet connection and try again.";
+  return "Unable to connect to the consultation server. Please verify your connection.";
 }
 
 export function ChatScreen() {
@@ -58,7 +61,7 @@ export function ChatScreen() {
     queryKey: ['messages', conversationId],
     queryFn: () => listMessages(conversationId),
   });
-  const { streamingText, connectionStatus } =
+  const { streamingText, streamPhases, connectionStatus } =
     useConversationSocket(conversationId);
 
   const messages = messagesQuery.data?.items ?? [];
@@ -72,9 +75,6 @@ export function ChatScreen() {
 
   useEffect(() => {
     if (messages.length > 0) {
-      // A short delay lets the new row actually lay out before we ask the
-      // list to scroll to it — scrolling on the same tick as the data
-      // change can silently no-op on Android.
       const timer = setTimeout(
         () => listRef.current?.scrollToEnd({ animated: true }),
         50,
@@ -85,23 +85,31 @@ export function ChatScreen() {
   }, [messages.length]);
 
   const sendMutation = useMutation({
-    mutationFn: (content: string) =>
+    mutationFn: ({
+      content,
+      clientMessageId,
+    }: {
+      content: string;
+      clientMessageId: string;
+    }) =>
       sendMessage(conversationId, {
         content,
-        clientMessageId: generateClientId(),
+        clientMessageId,
       }),
-    onSuccess: userMessage => {
+    onSuccess: (userMessage) => {
       setDraft('');
       setSendError(null);
       queryClient.setQueryData<PaginatedResult<ChatMessage>>(
         ['messages', conversationId],
-        old =>
-          old
-            ? { ...old, items: [...old.items, userMessage] }
-            : { items: [userMessage], nextCursor: null },
+        (old) => {
+          if (!old) return { items: [userMessage], nextCursor: null };
+          if (old.items.some((m) => m.id === userMessage.id)) return old;
+          return { ...old, items: [...old.items, userMessage] };
+        },
       );
+      void queryClient.invalidateQueries({ queryKey: ['wallet', 'balance'] });
     },
-    onError: (error: unknown) => {
+    onError: (error) => {
       setSendError(sendErrorMessage(error));
     },
   });
@@ -109,23 +117,22 @@ export function ChatScreen() {
   const regenerateMutation = useMutation({
     mutationFn: (messageId: string) =>
       regenerateMessage(conversationId, messageId),
-    onSuccess: message => {
+    onSuccess: (updated) => {
       queryClient.setQueryData<PaginatedResult<ChatMessage>>(
         ['messages', conversationId],
-        old => {
-          if (!old) return { items: [message], nextCursor: null };
-          const index = old.items.findIndex(item => item.id === message.id);
-          if (index === -1) return { ...old, items: [...old.items, message] };
-          const items = [...old.items];
-          items[index] = message;
-          return { ...old, items };
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            items: old.items.map((m) => (m.id === updated.id ? updated : m)),
+          };
         },
       );
     },
-    onError: () => {
+    onError: (error) => {
       Alert.alert(
-        "Couldn't do that",
-        'Please check your connection and try again.',
+        'Regeneration failed',
+        error instanceof ApiError ? error.message : 'Please try again.',
       );
     },
   });
@@ -138,15 +145,15 @@ export function ChatScreen() {
       messageId: string;
       rating: 'up' | 'down';
     }) => submitFeedback(conversationId, messageId, { rating }),
-    onSuccess: message => {
+    onSuccess: (updatedMessage, { messageId }) => {
       queryClient.setQueryData<PaginatedResult<ChatMessage>>(
         ['messages', conversationId],
-        old => {
+        (old) => {
           if (!old) return old;
           return {
             ...old,
-            items: old.items.map(item =>
-              item.id === message.id ? message : item,
+            items: old.items.map((m) =>
+              m.id === messageId ? updatedMessage : m,
             ),
           };
         },
@@ -154,32 +161,58 @@ export function ChatScreen() {
     },
   });
 
+  async function loadOlderMessages() {
+    const cursor = messagesQuery.data?.nextCursor;
+    if (!cursor) return;
+    try {
+      const older = await listMessages(conversationId, cursor);
+      queryClient.setQueryData<PaginatedResult<ChatMessage>>(
+        ['messages', conversationId],
+        (current) => ({
+          items: [...older.items, ...(current?.items ?? [])],
+          nextCursor: older.nextCursor,
+        }),
+      );
+    } catch {
+      // Best-effort pagination
+    }
+  }
+
   function handleSend() {
-    const content = draft.trim();
-    if (content.length === 0 || sendMutation.isPending) return;
-    sendMutation.mutate(content);
+    const trimmed = draft.trim();
+    if (!trimmed || sendMutation.isPending) return;
+    const clientMessageId = generateClientId();
+    sendMutation.mutate({ content: trimmed, clientMessageId });
   }
 
   function handleSuggestedQuestion(question: string) {
     if (sendMutation.isPending) return;
-    sendMutation.mutate(question);
+    const clientMessageId = generateClientId();
+    sendMutation.mutate({ content: question, clientMessageId });
   }
 
-  async function loadOlderMessages() {
-    if (!messagesQuery.data?.nextCursor) return;
-    const older = await listMessages(
-      conversationId,
-      messagesQuery.data.nextCursor,
+  if (messagesQuery.isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.gold} />
+      </View>
     );
-    queryClient.setQueryData<PaginatedResult<ChatMessage>>(
-      ['messages', conversationId],
-      old =>
-        old
-          ? {
-              items: [...older.items, ...old.items],
-              nextCursor: older.nextCursor,
-            }
-          : older,
+  }
+
+  if (messagesQuery.isError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>
+          {sendErrorMessage(messagesQuery.error)}
+        </Text>
+        <TouchableOpacity
+          onPress={() => messagesQuery.refetch()}
+          accessibilityRole="button"
+          style={styles.retryAction}
+        >
+          <Text style={styles.retryLink}>Tap to retry consultation</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -187,78 +220,79 @@ export function ChatScreen() {
     <KeyboardAvoidingView
       style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
     >
-      {connectionStatus !== 'connected' && (
+      {/* Top Consultation Rate & Balance Bar */}
+      <View style={styles.topInfoBar}>
+        <View style={styles.pricingPillContainer}>
+          <PricingCostPill cost={1} unit="Credit / query" variant="subtle" />
+        </View>
+        <CreditBalanceBadge />
+      </View>
+
+      {(connectionStatus === 'disconnected' || connectionStatus === 'connecting') && (
         <View style={styles.connectionBanner}>
           <Text style={styles.connectionBannerText}>
-            {connectionStatus === 'connecting'
-              ? 'Reconnecting…'
-              : "You're offline — messages will send once you're back online."}
+            Reconnecting to consultation session…
           </Text>
         </View>
       )}
 
-      {messagesQuery.isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" />
-        </View>
-      ) : messagesQuery.isError ? (
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Couldn't load this conversation.</Text>
-          <TouchableOpacity
-            onPress={() => {
-              void messagesQuery.refetch();
-            }}
-            accessibilityRole="button"
-          >
-            <Text style={styles.retryLink}>Try again</Text>
-          </TouchableOpacity>
-        </View>
-      ) : isEmpty ? (
+      {isEmpty ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>Ask Astra anything</Text>
+          <View style={styles.acharyaAvatarBadge}>
+            <Text style={styles.acharyaAvatarLetter}>V</Text>
+          </View>
+          <Text style={styles.emptyTitle}>Acharya Vashishta</Text>
           <Text style={styles.emptySubtitle}>
-            Love, career, today's outlook, or what your chart means.
+            Vedic Jyotish Consultation • Kundli & Grah Dasha Guidance
           </Text>
+
+          {/* Language Selection Chips */}
           <View style={styles.languageRow}>
-            {LANGUAGE_OPTIONS.map(option => (
+            {LANGUAGE_OPTIONS.map((opt) => (
               <TouchableOpacity
-                key={option.value}
+                key={opt.value}
                 style={[
-                  styles.languagePill,
-                  language === option.value && styles.languagePillActive,
+                  styles.languageChip,
+                  language === opt.value && styles.languageChipActive,
                 ]}
-                onPress={() => setLanguage(option.value)}
+                onPress={() => setLanguage(opt.value)}
                 accessibilityRole="button"
               >
                 <Text
                   style={[
-                    styles.languagePillText,
-                    language === option.value && styles.languagePillTextActive,
+                    styles.languageChipText,
+                    language === opt.value && styles.languageChipTextActive,
                   ]}
                 >
-                  {option.label}
+                  {opt.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-          {suggestedQuestionsQuery.data?.questions.map(question => (
-            <TouchableOpacity
-              key={question}
-              style={styles.suggestedQuestion}
-              onPress={() => handleSuggestedQuestion(question)}
-              accessibilityRole="button"
-            >
-              <Text style={styles.suggestedQuestionText}>{question}</Text>
-            </TouchableOpacity>
-          ))}
+
+          {/* Contextual Guidance Starters */}
+          <View style={styles.suggestedContainer}>
+            <Text style={styles.suggestedSectionHeader}>RECOMMENDED INQUIRIES</Text>
+            {suggestedQuestionsQuery.data?.questions?.map((question) => (
+              <TouchableOpacity
+                key={question}
+                style={styles.suggestedQuestion}
+                onPress={() => handleSuggestedQuestion(question)}
+                accessibilityRole="button"
+              >
+                <Text style={styles.suggestedQuestionText}>{question}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       ) : (
         <FlatList
           ref={listRef}
           data={messages}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
           onContentSizeChange={() =>
             listRef.current?.scrollToEnd({ animated: false })
           }
@@ -269,8 +303,9 @@ export function ChatScreen() {
                   void loadOlderMessages();
                 }}
                 accessibilityRole="button"
+                style={styles.loadOlderButton}
               >
-                <Text style={styles.loadOlderText}>Load earlier messages</Text>
+                <Text style={styles.loadOlderText}>View earlier consultation history</Text>
               </TouchableOpacity>
             ) : undefined
           }
@@ -278,8 +313,9 @@ export function ChatScreen() {
             <MessageBubble
               message={item}
               streamingText={streamingText[item.id]}
-              onRetry={messageId => regenerateMutation.mutate(messageId)}
-              onRegenerate={messageId => regenerateMutation.mutate(messageId)}
+              phase={streamPhases[item.id]}
+              onRetry={(messageId) => regenerateMutation.mutate(messageId)}
+              onRegenerate={(messageId) => regenerateMutation.mutate(messageId)}
               onFeedback={(messageId, rating) =>
                 feedbackMutation.mutate({ messageId, rating })
               }
@@ -289,15 +325,19 @@ export function ChatScreen() {
       )}
 
       {sendError && (
-        <Text accessibilityRole="alert" style={styles.sendErrorText}>
-          {sendError}
-        </Text>
+        <View style={styles.errorBannerContainer}>
+          <Text accessibilityRole="alert" style={styles.sendErrorText}>
+            {sendError}
+          </Text>
+        </View>
       )}
 
-      <View style={styles.inputRow}>
+      {/* Seeker Input Bar */}
+      <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Ask about your chart…"
+          placeholder="Ask Acharya (e.g. When is the favorable time for a career change?)..."
+          placeholderTextColor={colors.textMuted}
           value={draft}
           onChangeText={setDraft}
           multiline
@@ -313,11 +353,12 @@ export function ChatScreen() {
           onPress={handleSend}
           disabled={draft.trim().length === 0 || sendMutation.isPending}
           accessibilityRole="button"
+          activeOpacity={0.8}
         >
           {sendMutation.isPending ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator color={colors.textInverse} size="small" />
           ) : (
-            <Text style={styles.sendButtonText}>Send</Text>
+            <Text style={styles.sendButtonText}>Ask</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -326,94 +367,206 @@ export function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  topInfoBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    backgroundColor: colors.backgroundCard,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSubtle,
+    zIndex: 10,
+    elevation: 4,
+  },
+  pricingPillContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: spacing.sm,
+    backgroundColor: colors.background,
+    padding: spacing.xl,
   },
-  errorText: { color: '#c0392b' },
-  retryLink: { color: '#1a73e8' },
+  errorText: {
+    ...typography.bodySecondary,
+    color: colors.danger,
+    textAlign: 'center',
+  },
+  retryAction: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  retryLink: {
+    ...typography.caption,
+    color: colors.goldLight,
+    fontWeight: '600',
+  },
   connectionBanner: {
-    backgroundColor: '#fff4e5',
-    paddingVertical: 6,
-    paddingHorizontal: 16,
+    backgroundColor: colors.warningBackground,
+    paddingVertical: 5,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderGold,
   },
-  connectionBannerText: { color: '#8a5a00', fontSize: 12, textAlign: 'center' },
+  connectionBannerText: {
+    ...typography.caption,
+    color: colors.textGold,
+    textAlign: 'center',
+  },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
-    gap: 10,
+    padding: spacing.xl,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700' },
+  acharyaAvatarBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.backgroundCardElevated,
+    borderWidth: 1,
+    borderColor: colors.borderGold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  acharyaAvatarLetter: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.gold,
+  },
+  emptyTitle: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
   emptySubtitle: {
-    fontSize: 13,
-    color: '#6b6b75',
+    ...typography.bodySecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.md,
+    maxWidth: 300,
   },
-  languageRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  languagePill: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#d0d0d5',
+  languageRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
   },
-  languagePillActive: { backgroundColor: '#1a73e8', borderColor: '#1a73e8' },
-  languagePillText: { fontSize: 12, color: '#3a3a42' },
-  languagePillTextActive: { color: '#fff', fontWeight: '600' },
-  suggestedQuestion: {
+  languageChip: {
+    backgroundColor: colors.backgroundCard,
     borderWidth: 1,
-    borderColor: '#e5e5ea',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginBottom: 8,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.sm,
+    paddingVertical: 5,
+    paddingHorizontal: spacing.md,
+  },
+  languageChipActive: {
+    backgroundColor: colors.backgroundHighlight,
+    borderColor: colors.borderGold,
+  },
+  languageChipText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  languageChipTextActive: {
+    color: colors.goldLight,
+    fontWeight: '600',
+  },
+  suggestedContainer: {
     width: '100%',
+    maxWidth: 380,
+    marginTop: spacing.xs,
   },
-  suggestedQuestionText: { fontSize: 13, color: '#1a1a1f' },
-  loadOlderText: {
-    color: '#1a73e8',
-    fontSize: 13,
+  suggestedSectionHeader: {
+    ...typography.overline,
+    fontSize: 10,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
     textAlign: 'center',
-    paddingVertical: 10,
+    letterSpacing: 0.8,
+  },
+  suggestedQuestion: {
+    backgroundColor: colors.backgroundCard,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  suggestedQuestionText: {
+    ...typography.bodySecondary,
+    color: colors.textPrimary,
+    lineHeight: 18,
+  },
+  listContent: {
+    paddingVertical: spacing.sm,
+  },
+  loadOlderButton: {
+    alignSelf: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  loadOlderText: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
+  errorBannerContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.dangerBackground,
   },
   sendErrorText: {
-    color: '#c0392b',
-    fontSize: 12,
+    ...typography.caption,
+    color: colors.danger,
     textAlign: 'center',
-    paddingVertical: 4,
   },
-  inputRow: {
+  inputContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-    padding: 12,
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    backgroundColor: colors.backgroundCard,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f2',
+    borderTopColor: colors.borderSubtle,
+    gap: spacing.xs,
   },
   input: {
     flex: 1,
+    minHeight: 40,
+    maxHeight: 100,
+    backgroundColor: colors.backgroundInput,
     borderWidth: 1,
-    borderColor: '#d0d0d5',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    maxHeight: 120,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs,
+    color: colors.textPrimary,
+    fontSize: 14,
   },
   sendButton: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    backgroundColor: colors.gold,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    minHeight: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendButtonDisabled: { opacity: 0.5 },
-  sendButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  sendButtonDisabled: {
+    opacity: 0.4,
+  },
+  sendButtonText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.textInverse,
+  },
 });
