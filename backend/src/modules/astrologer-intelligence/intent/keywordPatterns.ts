@@ -49,23 +49,26 @@ export const INTENT_MATCHERS: IntentMatcher[] = [
     ],
   },
 
-  // 2c. Ambiguous Emotions & Physiological Sensations ("Dil dhadkne laga", "Confused hoon", etc.)
+  // 2c. Ambiguous Emotions & Physiological Sensations ("Dil dhadkne laga", "Confused hoon", "daru ka mann", etc.)
   {
     intent: CoreIntent.AMBIGUOUS_EMOTION,
     requiresClarification: true,
     patterns: [
       /\b(dil dhadak|dil dhadkne|dhadkan|heart racing|dil tez|heart beat|heartbeat|dil ghabra|mann ghabra)\b/i,
       /\b(main bahut confused hoon|bahut confused hoon|confused hoon|kuch samajh nahi aa raha|mujhe samajh nahi aa raha|sab kharab ho raha|sab kharab lag raha|bahut anxiety|anxiety ho rahi|bechaini ho rahi|mann ashant)\b/i,
-      /(दिल धड़कने लगा|दिल धड़क रहा|दिल की धड़कन|घबराहट हो रही|बेचैन हूं|बहुत कन्फ्यूज हूं|कुछ समझ नहीं आ रहा|सब खराब हो रहा)/,
+      /\b(daru|daaru|beer|alcohol|sharab|sharaab|peene ka man|peene ka mann|daru ka man|daru ka mann|daaru ka man|daaru ka mann|daru peene|party karne|chill karne)\b/i,
+      /\b(bore ho raha|mood off|mood kharab|man nahi lag raha|mann nahi lag raha|aaj man udaas|aaj mann udas|thak gaya|thakan ho rahi|neend nahi aa rahi)\b/i,
+      /(दिल धड़कने लगा|दिल धड़क रहा|दिल की धड़कन|घबराहट हो रही|बेचैन हूं|बहुत कन्फ्यूज हूं|कुछ समझ नहीं आ रहा|सब खराब हो रहा|दारू का मन|शराब पीने का मन|मूड खराब|बोर हो रहा|मन नहीं लग रहा|नींद नहीं आ रही)/,
     ],
   },
 
-  // 2d. Casual Pleasantries & Thanks
+  // 2d. Casual Pleasantries, Venting & Thanks
   {
     intent: CoreIntent.CASUAL_CHAT,
     patterns: [
-      /^(thanks|thank you|shukriya|dhanyawad|dhanyavaad|kya haal hai|how are you|kaise ho|aap kaise hain)[!.,\s]*$/i,
-      /^(धन्यवाद|शुक्रिया|आप कैसे हैं|क्या हाल है)[!.,\s]*$/,
+      /^(thanks|thank you|shukriya|dhanyawad|dhanyavaad|kya haal hai|how are you|kaise ho|aap kaise hain|aur batao|kya chal raha hai|kya chal raha|kuch nahi|bas aise hi)[!.,\s]*$/i,
+      /^(धन्यवाद|शुक्रिया|आप कैसे हैं|क्या हाल है|और बताओ|कुछ नहीं|बस ऐसे ही)[!.,\s]*$/,
+      /\b(aur batao|kya haal chaal|sab theek|kuch sunao|kuch baat karo)\b/i,
     ],
   },
 

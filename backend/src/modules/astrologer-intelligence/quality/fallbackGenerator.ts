@@ -20,25 +20,9 @@ export const fallbackGenerator = {
     const isHinglish =
       language === 'hinglish' ||
       (language !== 'hi' &&
-        (q.includes('shadi') ||
-          q.includes('shaadi') ||
-          q.includes('naukri') ||
-          q.includes('karega') ||
-          q.includes('hogi') ||
-          q.includes('kab') ||
-          q.includes('pranam') ||
-          q.includes('namaste') ||
-          q.includes('mera') ||
-          q.includes('meri') ||
-          q.includes('ladai') ||
-          q.includes('jhagda') ||
-          q.includes('kyu') ||
-          q.includes('kya') ||
-          q.includes('dil') ||
-          q.includes('dhadak') ||
-          q.includes('haan') ||
-          q.includes('achha') ||
-          q.includes('theek')));
+        /\b(shadi|shaadi|vivah|naukri|karega|hogi|hoga|kab|pranam|namaste|mera|meri|mere|ladai|jhagda|kyu|kyun|kya|dil|dhadak|haan|achha|theek|thik|mann|man|mood|daru|daaru|beer|alcohol|sharab|peene|ka|ki|ke|ko|se|me|mein|par|pe|ne|toh|to|aur|ya|hai|hain|ho|h|hn|batao|karo|raha|rahi|rahe|kuch|kaise|kaisa)\b/i.test(
+          q,
+        ));
 
     // 1. Safety Gates
     if (intents.primary === CoreIntent.CRISIS_SELF_HARM) {
@@ -87,12 +71,14 @@ export const fallbackGenerator = {
       return `Yes, absolutely. Please feel free to share more details so we can explore further.`;
     }
 
-    // 4. Ambiguous Emotions & Sensations ("Dil dhadkne laga", "Confused hoon")
+    // 4. Ambiguous Emotions & Sensations ("Dil dhadkne laga", "Confused hoon", "daru ka mann")
     if (
       strategy.action === ResponseAction.HANDLE_AMBIGUITY ||
       intents.primary === CoreIntent.AMBIGUOUS_EMOTION
     ) {
       const isHeart = /\b(dil|dhadak|dhadkan|heart|racing)\b/i.test(q);
+      const isSubstanceOrMood = /\b(daru|daaru|beer|alcohol|sharab|peene|party|chill|mood off|bore|thak)\b/i.test(q);
+
       if (isHeart) {
         if (isHindi) {
           return `दिल किस वजह से धड़कने लगा? किसी खास व्यक्ति की वजह से या आज कुछ विशेष हुआ? अगर शारीरिक घबराहट महसूस हो रही है, तो पहले गहरी सांस लें और आराम से बैठें।`;
@@ -101,6 +87,16 @@ export const fallbackGenerator = {
           return `Dil kis wajah se dhadakne laga? Kisi special person ki wajah se ya aaj kuch unexpected hua? Agar physical heart racing feel ho rahi hai, toh pehle thoda deep breath lein aur aaram se baithein.`;
         }
         return `What made your heart race? Is it excitement about someone special, or are you feeling physical anxiety? If it's physical, please take a deep breath and rest comfortably.`;
+      }
+
+      if (isSubstanceOrMood) {
+        if (isHindi) {
+          return `आज ऐसा क्या हुआ? किसी बात का तनाव या थकान है, या बस दोस्तों के साथ रिलैक्स करने का मूड है?`;
+        }
+        if (isHinglish) {
+          return `Aisa kya ho gaya aaj? Kisi baat ka stress ya thakan hai, ya bas dosto ke saath chill karne ka mann ho raha hai?`;
+        }
+        return `What brought on this mood today? Is it stress from a hectic day, or just wanting to unwind with friends?`;
       }
 
       if (isHindi) {
@@ -112,15 +108,15 @@ export const fallbackGenerator = {
       return `I understand. What is causing this confusion or anxiety—personal life, career, or something else?`;
     }
 
-    // 5. Casual Pleasantries & Thanks
+    // 5. Casual Pleasantries, Venting & Thanks
     if (intents.primary === CoreIntent.CASUAL_CHAT) {
       if (isHindi) {
-        return `आपका स्वागत है। यदि मन में कोई और प्रश्न या विषय हो तो अवश्य बताएं।`;
+        return `बताइए, आज किस विषय पर बात करना चाहते हैं—व्यक्तिगत जीवन, करियर या कुछ और?`;
       }
       if (isHinglish) {
-        return `Aapka swagat hai. Agar mann mein koi aur sawaal ya vishay ho toh bejhi-jhak batayein.`;
+        return `Bataiye, aaj kis vishay par baat karna chahte hain—personal life, career ya kuch aur?`;
       }
-      return `You are most welcome. Please feel free to ask if anything else is on your mind.`;
+      return `What would you like to explore today—personal life, career, or something else on your mind?`;
     }
 
     // 6. Relationship Conflict & Today's Discord

@@ -110,6 +110,37 @@ describe('Astrologer Golden Matrix Benchmark Suite (PART 6 Specification)', () =
       expect(response.toLowerCase()).toMatch(/special person|heart racing|deep breath/);
       expect(response).not.toMatch(/Jupiter|Saturn|7th house|transit indicates/i);
     });
+
+    it('handles casual lifestyle desires like "daru ka Mann h" with human empathy without dumping planetary transits or requesting birth details', () => {
+      const query = 'daru ka Mann h';
+      const intents = intentEngine.detectIntents(query);
+      const emotion = emotionDetector.detectEmotion(query);
+      const strategy = responseStrategyEngine.determineStrategy(
+        intents,
+        emotion,
+        ConsultationState.CLARIFYING,
+        1,
+        'hinglish',
+        query,
+      );
+
+      expect(intents.astrologyRelevance).toBe('AMBIGUOUS');
+      expect(strategy.action).toBe(ResponseAction.HANDLE_AMBIGUITY);
+      expect(strategy.askClarification).toBe(true);
+
+      const mockContext = contextBuilder.buildMockContext('GENERAL', { available: false });
+      const response = fallbackGenerator.generate({
+        intents,
+        emotion,
+        strategy,
+        astrology: mockContext,
+        language: 'hinglish',
+        userMessage: query,
+      });
+
+      expect(response.toLowerCase()).toMatch(/stress|thakan|chill|dosto/);
+      expect(response).not.toMatch(/Examining your current planetary cycle|Date of Birth|Exact Time/i);
+    });
   });
 
   describe('3. Short Conversational Acknowledgments', () => {

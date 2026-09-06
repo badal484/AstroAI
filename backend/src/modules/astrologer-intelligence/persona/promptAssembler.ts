@@ -1,7 +1,7 @@
 import type { AstrologerPersona, SupportedLanguage, AIMessage, IntentCategory } from '@astroai/shared-types';
 import { AIMessageRole } from '@astroai/shared-types';
 import { buildIntentGuidance } from '../../astrologer/prompts/intentGuidance';
-import type { DetectedIntents } from '../intent/intentTypes';
+import { CoreIntent, type DetectedIntents } from '../intent/intentTypes';
 import type { EmotionalContext } from '../emotion/emotionTypes';
 import type { FilteredAstrologyContext } from '../astrology-context/contextBuilder';
 import type { StructuredAstrologyReasoning } from '../reasoning/reasoningTypes';
@@ -106,7 +106,15 @@ Analyze the verified astrological chart facts provided below. Stay strictly grou
       }
     }
 
-    if (input.legacyIntent) {
+    if (
+      input.legacyIntent &&
+      intents.astrologyRelevance !== 'NOT_RELEVANT' &&
+      intents.astrologyRelevance !== 'AMBIGUOUS' &&
+      intents.primary !== CoreIntent.GREETING_INTAKE &&
+      intents.primary !== CoreIntent.SHORT_ACKNOWLEDGMENT &&
+      intents.primary !== CoreIntent.CASUAL_CHAT &&
+      intents.primary !== CoreIntent.AMBIGUOUS_EMOTION
+    ) {
       sections.push(`Domain Guidance: ${buildIntentGuidance(input.legacyIntent)}`);
     }
 

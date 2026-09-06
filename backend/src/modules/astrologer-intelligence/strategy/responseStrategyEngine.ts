@@ -63,12 +63,13 @@ export const responseStrategyEngine = {
       };
     }
 
-    // 4. Ambiguous Emotions & Sensations ("Dil dhadkne laga", "Confused hoon", etc.)
+    // 4. Ambiguous Emotions & Sensations ("Dil dhadkne laga", "Confused hoon", "daru ka mann", etc.)
     if (
       intents.primary === CoreIntent.AMBIGUOUS_EMOTION ||
       intents.astrologyRelevance === 'AMBIGUOUS'
     ) {
       const isHeartRelated = /\b(dil|dhadak|dhadkan|heart|racing)\b/i.test(lower);
+      const isSubstanceOrMood = /\b(daru|daaru|beer|alcohol|sharab|peene|party|chill|mood off|bore|thak)\b/i.test(lower);
       let clarificationQuestion = '';
 
       if (isHeartRelated) {
@@ -77,6 +78,12 @@ export const responseStrategyEngine = {
           : isHinglish
           ? 'Dil kis wajah se dhadakne laga? Kisi special person ki wajah se ya physical heart racing feel ho rahi hai?'
           : 'What made your heart race? Is it excitement about someone special, or physical anxiety?';
+      } else if (isSubstanceOrMood) {
+        clarificationQuestion = isHindi
+          ? 'आज ऐसा क्या हुआ? किसी बात का तनाव या थकान है, या बस दोस्तों के साथ रिलैक्स करने का मूड है?'
+          : isHinglish
+          ? 'Aisa kya ho gaya aaj? Kisi baat ka stress ya thakan hai, ya bas dosto ke saath chill karne ka mann ho raha hai?'
+          : 'What brought on this mood today? Is it stress from a hectic day, or just wanting to unwind?';
       } else {
         clarificationQuestion = isHindi
           ? 'मैं समझ सकता हूँ। असमंजस या बेचैनी किस विषय को लेकर हो रही है—व्यक्तिगत जीवन, करियर या कुछ और?'
@@ -95,6 +102,10 @@ export const responseStrategyEngine = {
           ? (isHindiOrHinglish
               ? ['Kisi special person ki wajah se', 'Kuch achanak hua', 'Physical anxiety lag rahi hai']
               : ['Excited about someone', 'Something unexpected happened', 'Physical anxiety'])
+          : isSubstanceOrMood
+          ? (isHindiOrHinglish
+              ? ['Stress ya thakan', 'Dosto ke sath chill', 'Bas aise hi mood bana']
+              : ['Stress or fatigue', 'Unwinding with friends', 'Just a casual mood'])
           : (isHindiOrHinglish
               ? ['Career confusion', 'Relationship issue', 'General anxiety']
               : ['Career confusion', 'Relationship issue', 'General anxiety']),

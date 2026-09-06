@@ -141,7 +141,16 @@ export const intentEngine = {
 
     // 3. Fallback resolution if no direct pattern matched
     if (matchedIntents.length === 0) {
-      if (/\b(dil|dhadkan|heart|racing|anxiety|bechain|confused)\b/i.test(normalized)) {
+      const hasAstrologyKeywords =
+        /\b(kundli|kundali|chart|grah|graha|dasha|future|bhavishya|transit|gochar|rashifal|rashi|horoscope|nakshatra|jyotish|astrology)\b/i.test(
+          normalized,
+        ) || /(कुंडली|ग्रह|दशा|भविष्य|गोचर|राशि|नक्षत्र|ज्योतिष)/.test(rawText);
+
+      if (
+        /\b(dil|dhadkan|heart|racing|anxiety|bechain|confused|confusion|daru|daaru|beer|alcohol|sharab|mood|bore|thak|peene)\b/i.test(
+          normalized,
+        )
+      ) {
         matchedIntents.push(CoreIntent.AMBIGUOUS_EMOTION);
         requiresClarification = true;
       } else if (entities.includes('DOMAIN_MARRIAGE')) {
@@ -152,10 +161,10 @@ export const intentEngine = {
         matchedIntents.push(CoreIntent.CAREER_GENERAL);
       } else if (entities.includes('DOMAIN_FINANCE')) {
         matchedIntents.push(CoreIntent.FINANCE_GENERAL);
-      } else if (normalized.split(' ').length <= 2) {
-        matchedIntents.push(CoreIntent.CASUAL_CHAT);
-      } else {
+      } else if (hasAstrologyKeywords) {
         matchedIntents.push(CoreIntent.GENERAL_LIFE_READING);
+      } else {
+        matchedIntents.push(CoreIntent.CASUAL_CHAT);
       }
     }
 
