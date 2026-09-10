@@ -1,10 +1,15 @@
 import { Schema, model, type InferSchemaType, type HydratedDocument } from 'mongoose';
-import { SupportedLanguage } from '@astroai/shared-types';
+import { GuruPersonaId, SupportedLanguage } from '@astroai/shared-types';
 
 const conversationSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     birthProfileId: { type: Schema.Types.ObjectId, ref: 'BirthProfile', default: null },
+    personaId: {
+      type: String,
+      enum: [...Object.values(GuruPersonaId), null],
+      default: GuruPersonaId.ACHARYA_VASHISHTA,
+    },
     title: { type: String, required: true, trim: true },
     // The most recently detected message language — used to default the
     // language switcher and suggested questions to whatever the

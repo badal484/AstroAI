@@ -9,8 +9,9 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { KundliChart, type PlanetPosition } from '../../components/ui/KundliChart';
+import { KundliChartSVG } from '../../components/astrology/KundliChartSVG';
 import { CreditBalanceBadge } from '../../components/ui/CreditBalanceBadge';
-import { colors, radius, spacing, typography } from '../../theme';
+import { colors, radius, shadows, spacing, typography } from '../../theme';
 import type { AppStackParamList } from '../../navigation/AppStack';
 
 const DETAILED_PLANETS: (PlanetPosition & { nakshatra: string; pada: number })[] = [
@@ -28,6 +29,7 @@ const DETAILED_PLANETS: (PlanetPosition & { nakshatra: string; pada: number })[]
 export function KundliExplorerScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const [chartType, setChartType] = useState<'D1_LAGNA' | 'D9_NAVAMSHA'>('D1_LAGNA');
+  const [viewMode, setViewMode] = useState<'DIAMOND' | 'GRID'>('DIAMOND');
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -40,7 +42,7 @@ export function KundliExplorerScreen() {
         <CreditBalanceBadge />
       </View>
 
-      {/* Chart Selector Tabs */}
+      {/* Chart Selector Tabs & View Mode */}
       <View style={styles.tabRow}>
         <TouchableOpacity
           style={[styles.tab, chartType === 'D1_LAGNA' && styles.tabActive]}
@@ -48,7 +50,7 @@ export function KundliExplorerScreen() {
           activeOpacity={0.8}
         >
           <Text style={[styles.tabText, chartType === 'D1_LAGNA' && styles.tabTextActive]}>
-            D1 Lagna Chart
+            D1 Lagna
           </Text>
         </TouchableOpacity>
 
@@ -58,17 +60,43 @@ export function KundliExplorerScreen() {
           activeOpacity={0.8}
         >
           <Text style={[styles.tabText, chartType === 'D9_NAVAMSHA' && styles.tabTextActive]}>
-            D9 Navamsha Chart
+            D9 Navamsha
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tab, viewMode === 'DIAMOND' ? styles.tabActive : null]}
+          onPress={() => setViewMode(viewMode === 'DIAMOND' ? 'GRID' : 'DIAMOND')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.tabText, styles.tabTextActive]}>
+            {viewMode === 'DIAMOND' ? 'Diamond Chart' : 'Grid View'}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Interactive Kundli Chart */}
-      <KundliChart
-        chartType={chartType}
-        ascendantSignIndex={5}
-        planets={DETAILED_PLANETS}
-      />
+      {/* Interactive Kundli Chart (Diamond SVG or House Grid) */}
+      {viewMode === 'DIAMOND' ? (
+        <View style={{ alignItems: 'center', marginVertical: spacing.sm }}>
+          <KundliChartSVG
+            ascendantSign="Leo"
+            planets={DETAILED_PLANETS.map((p) => ({
+              planet: p.name,
+              shortCode: p.symbol,
+              house: p.house,
+              sign: p.sign,
+              isRetrograde: p.isRetrograde,
+            }))}
+            size={330}
+          />
+        </View>
+      ) : (
+        <KundliChart
+          chartType={chartType}
+          ascendantSignIndex={5}
+          planets={DETAILED_PLANETS}
+        />
+      )}
 
       {/* Planetary Degrees & Nakshatra Table */}
       <View style={styles.tableCard}>
@@ -132,7 +160,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
-    paddingBottom: spacing.xxxl,
+    paddingBottom: 90,
     gap: spacing.md,
   },
   topBar: {
@@ -166,9 +194,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   tabActive: {
-    backgroundColor: colors.backgroundCardElevated,
-    borderWidth: 1,
-    borderColor: colors.borderGold,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   tabText: {
     ...typography.caption,
@@ -176,7 +203,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   tabTextActive: {
-    color: colors.goldLight,
+    color: colors.textInverse,
+    fontWeight: '700',
   },
   tableCard: {
     backgroundColor: colors.backgroundCard,
@@ -184,6 +212,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     padding: spacing.md,
+    ...shadows.card,
   },
   tableHeaderSection: {
     flexDirection: 'row',
@@ -221,10 +250,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xs + 2,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+    borderBottomColor: colors.borderSubtle,
   },
   tableRowAlt: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: colors.backgroundCardElevated,
   },
   planetNameText: {
     ...typography.bodySecondary,
@@ -243,7 +272,8 @@ const styles = StyleSheet.create({
   degreeText: {
     ...typography.caption,
     fontSize: 11,
-    color: colors.goldLight,
+    color: colors.primary,
+    fontWeight: '700',
   },
   nakshatraText: {
     ...typography.caption,
@@ -257,19 +287,20 @@ const styles = StyleSheet.create({
   chatCta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: colors.backgroundCard,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     borderRadius: radius.md,
     padding: spacing.md,
+    ...shadows.card,
   },
   acharyaBadgeSmall: {
     width: 32,
     height: 32,
     borderRadius: radius.sm,
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: 'rgba(79, 70, 229, 0.08)',
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -277,7 +308,7 @@ const styles = StyleSheet.create({
   acharyaBadgeLetter: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
   chatCtaTextContainer: {
     flex: 1,
@@ -294,7 +325,7 @@ const styles = StyleSheet.create({
   },
   chatCtaArrow: {
     fontSize: 18,
-    color: colors.gold,
+    color: colors.primary,
     marginLeft: spacing.sm,
   },
 });

@@ -93,6 +93,10 @@ const EMOTION_MATCHERS: EmotionMatcher[] = [
 ];
 
 export const emotionDetector = {
+  detect(userMessage: string): EmotionalContext {
+    return this.detectEmotion(userMessage);
+  },
+
   detectEmotion(userMessage: string): EmotionalContext {
     const text = userMessage.trim();
 

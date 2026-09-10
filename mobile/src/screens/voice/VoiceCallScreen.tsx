@@ -597,9 +597,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   ratePill: {
-    backgroundColor: colors.backgroundHighlight,
+    backgroundColor: colors.indigoMuted,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
     borderRadius: radius.sm,
     paddingVertical: 2,
     paddingHorizontal: spacing.sm,
@@ -607,7 +607,8 @@ const styles = StyleSheet.create({
   rateText: {
     ...typography.caption,
     fontSize: 11,
-    color: colors.textGold,
+    color: colors.primary,
+    fontWeight: '600',
   },
   centerSection: {
     alignItems: 'center',
@@ -635,7 +636,7 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 1.5,
-    borderColor: colors.gold,
+    borderColor: colors.primary,
   },
   processingRing: {
     position: 'absolute',
@@ -643,16 +644,16 @@ const styles = StyleSheet.create({
     height: 156,
     borderRadius: 78,
     borderWidth: 1.5,
-    borderColor: colors.celestialIndigo,
+    borderColor: colors.primary,
     borderStyle: 'dashed',
   },
   orbCore: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: colors.backgroundCard,
     borderWidth: 1.5,
-    borderColor: colors.borderGold,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -669,7 +670,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
   },
   transcriptBox: {
     minHeight: 56,
@@ -697,7 +698,7 @@ const styles = StyleSheet.create({
   },
   warningText: {
     ...typography.caption,
-    color: colors.textGold,
+    color: colors.warning,
   },
   errorPill: {
     backgroundColor: colors.dangerBackground,
@@ -753,8 +754,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   controlButtonActive: {
-    borderColor: colors.borderGold,
-    backgroundColor: colors.backgroundHighlight,
+    borderColor: colors.primary,
+    backgroundColor: colors.indigoMuted,
   },
   controlButtonLabel: {
     ...typography.caption,
@@ -777,7 +778,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
@@ -785,10 +786,10 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: colors.backgroundCard,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     padding: spacing.lg,
   },
   modalTitle: {
@@ -803,7 +804,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   summaryTable: {
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundInput,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
@@ -819,7 +820,7 @@ const styles = StyleSheet.create({
   summaryRowHighlight: {
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     paddingVertical: spacing.xs,
   },
   summaryLabel: {
@@ -834,15 +835,15 @@ const styles = StyleSheet.create({
   summaryLabelGold: {
     ...typography.body,
     fontWeight: '700',
-    color: colors.textGold,
+    color: colors.primary,
   },
   summaryValueGold: {
     ...typography.body,
     fontWeight: '700',
-    color: colors.goldLight,
+    color: colors.primary,
   },
   modalCloseButton: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     alignItems: 'center',

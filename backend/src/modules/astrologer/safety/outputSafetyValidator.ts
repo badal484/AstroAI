@@ -19,7 +19,7 @@ interface SafetyPattern {
 const UNSAFE_OUTPUT_PATTERNS: SafetyPattern[] = [
   {
     label: 'guaranteed prediction',
-    pattern: /\b(guaranteed?|will (definitely|certainly)|100% (sure|certain))\b/i,
+    pattern: /\b((?:is|are|am) guaranteed|100% (?:guaranteed?|sure|certain)|will (?:definitely|certainly)|(?:i|we) guarantee|guaranteed (?:divorce|death|wealth|lottery|marriage|job|outcome))\b/i,
   },
   { label: 'death prediction', pattern: /\b(you will die|date of death|will die (on|in|by))\b/i },
   { label: 'claims to be human', pattern: /\bi(?:'m| am) (a real |actually )?human\b/i },

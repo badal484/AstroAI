@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { ReferralRecordDTO, UserReferralSummaryDTO } from '@astroai/shared-types';
 import { promotionApi } from '../../lib/promotionApi';
+import { colors, radius, spacing, typography } from '../../theme';
 
 export function ReferralScreen() {
   const [summary, setSummary] = useState<UserReferralSummaryDTO | null>(null);
@@ -127,19 +128,19 @@ export function ReferralScreen() {
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Rewarded</Text>
-            <Text style={[styles.statValue, { color: '#10b981' }]}>
+            <Text style={[styles.statValue, { color: colors.success }]}>
               {summary.successfulReferrals}
             </Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Pending</Text>
-            <Text style={[styles.statValue, { color: '#f59e0b' }]}>
+            <Text style={[styles.statValue, { color: colors.warning }]}>
               {summary.pendingReferrals}
             </Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Credits Earned</Text>
-            <Text style={[styles.statValue, { color: '#6366f1' }]}>
+            <Text style={[styles.statValue, { color: colors.primary }]}>
               +{summary.totalCreditsEarned}
             </Text>
           </View>
@@ -157,7 +158,7 @@ export function ReferralScreen() {
               value={claimCode}
               onChangeText={(t) => setClaimCode(t.toUpperCase())}
               placeholder="e.g. ASTRO89X"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="characters"
               style={styles.claimInput}
             />
@@ -168,7 +169,7 @@ export function ReferralScreen() {
               style={[styles.claimButton, (!claimCode.trim() || claiming) && styles.claimButtonDisabled]}
             >
               {claiming ? (
-                <ActivityIndicator size="small" color="#030712" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <Text style={styles.claimButtonText}>Claim</Text>
               )}
@@ -229,7 +230,7 @@ export function ReferralScreen() {
     <View style={styles.container}>
       {loading && !summary ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#f59e0b" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -242,7 +243,7 @@ export function ReferralScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#f59e0b"
+              tintColor={colors.primary}
             />
           }
           ListEmptyComponent={
@@ -260,7 +261,7 @@ export function ReferralScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -268,159 +269,170 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
+    padding: spacing.md,
     paddingBottom: 40,
   },
   headerWrapper: {
-    marginBottom: 8,
+    marginBottom: spacing.xs,
   },
   heroCard: {
-    backgroundColor: '#111827',
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    marginBottom: 16,
+    borderColor: colors.borderSubtle,
+    marginBottom: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   heroBadge: {
+    ...typography.overline,
     fontSize: 10,
     fontWeight: '700',
-    color: '#f59e0b',
+    color: colors.primary,
     letterSpacing: 1.2,
     marginBottom: 6,
   },
   heroTitle: {
+    ...typography.h3,
     fontSize: 18,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: colors.textPrimary,
     marginBottom: 6,
   },
   heroSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
+    ...typography.caption,
+    color: colors.textSecondary,
     lineHeight: 18,
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   codeBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#030712',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
   },
   codeTextGroup: {
     flex: 1,
   },
   codeLabel: {
+    ...typography.overline,
     fontSize: 9,
     fontWeight: '600',
-    color: '#64748b',
+    color: colors.textMuted,
     textTransform: 'uppercase',
   },
   codeValue: {
     fontSize: 18,
     fontWeight: '800',
     fontFamily: 'monospace',
-    color: '#fbbf24',
+    color: colors.primary,
     letterSpacing: 1,
     marginTop: 2,
   },
   copyButton: {
-    backgroundColor: '#1f2937',
+    backgroundColor: colors.primaryLight,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#374151',
+    borderColor: 'rgba(79, 70, 229, 0.2)',
   },
   copyButtonText: {
-    color: '#f8fafc',
+    color: colors.primary,
     fontSize: 12,
     fontWeight: '600',
   },
   shareButton: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: colors.primary,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: radius.md,
     alignItems: 'center',
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#4f46e5',
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowRadius: 6,
   },
   shareButtonText: {
-    color: '#030712',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
+    gap: spacing.xs,
+    marginBottom: spacing.md,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#111827',
-    borderRadius: 14,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: colors.borderSubtle,
     alignItems: 'center',
   },
   statLabel: {
+    ...typography.caption,
     fontSize: 10,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     fontWeight: '500',
     marginBottom: 4,
   },
   statValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: colors.textPrimary,
   },
   claimSection: {
-    backgroundColor: '#111827',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: colors.borderSubtle,
   },
   sectionTitle: {
+    ...typography.h3,
     fontSize: 14,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: colors.textPrimary,
   },
   sectionSubtitle: {
+    ...typography.caption,
     fontSize: 11,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     marginTop: 2,
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   claimRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.xs,
   },
   claimInput: {
     flex: 1,
-    backgroundColor: '#030712',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: '#374151',
-    borderRadius: 10,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.sm,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: '#f8fafc',
+    color: colors.textPrimary,
     fontSize: 13,
     fontWeight: '600',
     fontFamily: 'monospace',
   },
   claimButton: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: colors.primary,
     paddingHorizontal: 18,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -428,17 +440,17 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   claimButtonText: {
-    color: '#030712',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 13,
   },
   historyCard: {
-    backgroundColor: '#111827',
-    borderRadius: 12,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    marginBottom: 8,
+    borderColor: colors.borderSubtle,
+    marginBottom: spacing.xs,
   },
   historyTopRow: {
     flexDirection: 'row',
@@ -447,42 +459,44 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   historyUserText: {
+    ...typography.caption,
     fontSize: 13,
     fontWeight: '600',
-    color: '#f8fafc',
+    color: colors.textPrimary,
   },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: radius.sm,
   },
   statusBadgeRewarded: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    backgroundColor: colors.successBackground,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: colors.success,
   },
   statusBadgePending: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: colors.warningBackground,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: colors.warning,
   },
   statusBadgeRejected: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: colors.dangerBackground,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: colors.danger,
   },
   statusText: {
+    ...typography.caption,
     fontSize: 10,
     fontWeight: '700',
   },
   statusTextRewarded: {
-    color: '#10b981',
+    color: colors.success,
   },
   statusTextPending: {
-    color: '#f59e0b',
+    color: colors.warning,
   },
   statusTextRejected: {
-    color: '#ef4444',
+    color: colors.danger,
   },
   historyBottomRow: {
     flexDirection: 'row',
@@ -490,26 +504,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   historyRewardText: {
+    ...typography.caption,
     fontSize: 11,
     fontWeight: '600',
-    color: '#10b981',
+    color: colors.success,
   },
   historyDateText: {
+    ...typography.caption,
     fontSize: 11,
-    color: '#64748b',
+    color: colors.textMuted,
   },
   emptyContainer: {
-    padding: 24,
+    padding: spacing.xl,
     alignItems: 'center',
   },
   emptyText: {
+    ...typography.caption,
     fontSize: 13,
     fontWeight: '600',
-    color: '#64748b',
+    color: colors.textSecondary,
   },
   emptySubtext: {
+    ...typography.caption,
     fontSize: 11,
-    color: '#475569',
+    color: colors.textMuted,
     marginTop: 4,
     textAlign: 'center',
   },

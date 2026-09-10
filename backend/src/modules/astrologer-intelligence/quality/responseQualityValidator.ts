@@ -139,6 +139,21 @@ export const responseQualityValidator = {
       }
     }
 
+    // Education query vs Marriage intrusion
+    if (intent === CoreIntent.EDUCATION_HIGHER_STUDIES) {
+      const hasMarriageDominance =
+        /\b(vivah yog|marriage delay|jeevansathi|7th house|kalatra bhava|patni|pati)\b/i.test(lower);
+      const hasEducationContext =
+        /\b(college|admission|padhai|study|education|vidya|shiksha|exam|entrance|university|degree|stream|5th house|9th house|4th house|budha|guru)\b/i.test(lower);
+
+      if (hasMarriageDominance && !hasEducationContext) {
+        return {
+          consistent: false,
+          reason: 'Education query answered with marriage advice',
+        };
+      }
+    }
+
     // Greeting validation (Must NOT demand birth details or dump horoscope)
     if (intent === CoreIntent.GREETING_INTAKE) {
       const hasPrematureIntake =

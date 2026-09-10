@@ -1,7 +1,13 @@
+import { GuruPersonaId } from '@astroai/shared-types';
 import { ConversationModel, type ConversationDocument } from './conversation.model';
 
 export const conversationRepository = {
-  create(data: { userId: string; birthProfileId: string | null; title: string }) {
+  create(data: {
+    userId: string;
+    birthProfileId: string | null;
+    personaId?: GuruPersonaId | null;
+    title: string;
+  }) {
     return ConversationModel.create(data);
   },
 

@@ -144,7 +144,7 @@ export class AstrologerRubricScorer {
 
     if (input.hasBirthChart && !isNonChartAction && input.detectedIntent !== CoreIntent.UNSAFE_PREDICTION) {
       const mentionsAstrologicalFactors =
-        /house|bhava|lord|swami|graha|planet|dasha|antardasha|transit|gochar|guru|shukra|shani|mangal|rahu|ketu|surya|chandra|nakshatra/i.test(
+        /house|bhava|भाव|lord|swami|स्वामी|graha|ग्रह|planet|dasha|दशा|antardasha|transit|gochar|गोचर|guru|गुरु|shukra|शुक्र|shani|शनि|mangal|मंगल|rahu|राहु|ketu|केतु|surya|सूर्य|chandra|चंद्र|nakshatra|नक्षत्र/i.test(
           lowerText,
         );
       if (!mentionsAstrologicalFactors && input.strategyAction !== ResponseAction.ASK_CLARIFICATION) {
@@ -156,7 +156,7 @@ export class AstrologerRubricScorer {
     // 5. Astrological Relevance (0-5)
     let astrologicalRelevanceScore = 5;
     if (input.detectedIntent === CoreIntent.MARRIAGE_TIMING) {
-      if (!/7th|guru|shukra|venus|jupiter|vivah|shaadi|marriage/i.test(lowerText)) {
+      if (!/7th|सप्तम|guru|गुरु|shukra|शुक्र|venus|jupiter|vivah|विवाह|shaadi|शादी|marriage/i.test(lowerText)) {
         astrologicalRelevanceScore = 3;
         weaknesses.push('Marriage query did not reference 7th house, Jupiter, or Venus');
       }
@@ -166,7 +166,7 @@ export class AstrologerRubricScorer {
       input.detectedIntent === CoreIntent.CAREER_DECISION ||
       input.detectedIntent === CoreIntent.CAREER_GENERAL
     ) {
-      if (!/10th|6th|career|job|growth|sun|surya|saturn|shani|work/i.test(lowerText)) {
+      if (!/10th|दशम|6th|षष्ठ|career|job|growth|sun|surya|सूर्य|saturn|shani|शनि|work/i.test(lowerText)) {
         astrologicalRelevanceScore = 3;
         weaknesses.push('Career query did not reference 10th house, Sun, or Saturn');
       }

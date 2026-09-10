@@ -15,6 +15,7 @@ import type { BirthProfile, WalletBalanceDTO } from '@astroai/shared-types';
 import { birthProfileApi } from '../../lib/birthProfileApi';
 import { reportApi } from '../../lib/reportApi';
 import { walletApi } from '../../lib/walletApi';
+import { AstroIcon, type AstroIconName } from '../../components/ui/AstroIcon';
 import type { AppStackParamList } from '../../navigation/AppStack';
 import { colors, radius, spacing, typography } from '../../theme';
 
@@ -26,6 +27,7 @@ interface ReportOption {
   subtitle: string;
   credits: number;
   tag: string;
+  iconName: AstroIconName;
   isCompatibility?: boolean;
 }
 
@@ -36,6 +38,7 @@ const REPORT_OPTIONS: ReportOption[] = [
     subtitle: 'Complete 12-house natal analysis, planetary yogas, and life overview.',
     credits: 20,
     tag: 'NATAL',
+    iconName: 'kundli',
   },
   {
     type: ReportType.RELATIONSHIP_COMPATIBILITY,
@@ -43,6 +46,7 @@ const REPORT_OPTIONS: ReportOption[] = [
     subtitle: 'Deterministic 36-point Guna Milan, Mangal Dosha, and relationship synthesis.',
     credits: 25,
     tag: 'MILAN',
+    iconName: 'compatibility',
     isCompatibility: true,
   },
   {
@@ -51,6 +55,7 @@ const REPORT_OPTIONS: ReportOption[] = [
     subtitle: '10th House career lord, wealth prospects, and favorable planetary periods.',
     credits: 15,
     tag: 'CAREER',
+    iconName: 'briefcase',
   },
   {
     type: ReportType.TRANSIT_DASHA,
@@ -58,6 +63,7 @@ const REPORT_OPTIONS: ReportOption[] = [
     subtitle: 'Yearly Gochara transits of Jupiter, Saturn & Rahu combined with active Vimshottari.',
     credits: 15,
     tag: 'TRANSIT',
+    iconName: 'saturn',
   },
 ];
 
@@ -155,7 +161,7 @@ export function ReportCatalogScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.gold} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -169,6 +175,7 @@ export function ReportCatalogScreen() {
           <Text style={styles.screenSubtitle}>Personalized Jyotish Readings & PDF Reports</Text>
         </View>
         <View style={styles.balancePill}>
+          <AstroIcon name="coin" size={12} color={colors.primary} />
           <Text style={styles.balanceText}>{walletBalance?.availableBalance ?? 0} Credits</Text>
         </View>
       </View>
@@ -187,6 +194,7 @@ export function ReportCatalogScreen() {
             >
               <View style={styles.reportTopRow}>
                 <View style={styles.tagBadge}>
+                  <AstroIcon name={opt.iconName} size={11} color={colors.primary} />
                   <Text style={styles.tagBadgeText}>{opt.tag}</Text>
                 </View>
                 <View style={styles.costBadge}>
@@ -292,7 +300,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
-    paddingBottom: spacing.xxxl,
+    paddingBottom: 90,
     gap: spacing.md,
   },
   centerContainer: {
@@ -317,22 +325,25 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   balancePill: {
-    backgroundColor: colors.backgroundCardElevated,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: colors.borderGold,
-    borderRadius: radius.sm,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
+    borderRadius: radius.full,
     paddingVertical: 4,
     paddingHorizontal: spacing.sm,
   },
   balanceText: {
     ...typography.caption,
     fontWeight: '700',
-    color: colors.goldLight,
+    color: colors.primary,
   },
   sectionHeader: {
     ...typography.overline,
     fontSize: 10,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     letterSpacing: 0.8,
   },
   catalogGrid: {
@@ -344,10 +355,15 @@ const styles = StyleSheet.create({
     borderColor: colors.borderSubtle,
     borderRadius: radius.md,
     padding: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
   reportCardSelected: {
-    borderColor: colors.borderGold,
-    backgroundColor: colors.backgroundCardElevated,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
   },
   reportTopRow: {
     flexDirection: 'row',
@@ -356,9 +372,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   tagBadge: {
-    backgroundColor: colors.backgroundHighlight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
     borderRadius: radius.sm,
     paddingVertical: 2,
     paddingHorizontal: 6,
@@ -367,10 +386,10 @@ const styles = StyleSheet.create({
     ...typography.caption,
     fontSize: 9,
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
   costBadge: {
-    backgroundColor: colors.backgroundInput,
+    backgroundColor: colors.backgroundElevated,
     borderRadius: radius.sm,
     paddingVertical: 2,
     paddingHorizontal: spacing.xs,
@@ -379,7 +398,7 @@ const styles = StyleSheet.create({
     ...typography.caption,
     fontSize: 11,
     fontWeight: '600',
-    color: colors.textGoldLight,
+    color: colors.primary,
   },
   reportTitle: {
     ...typography.body,
@@ -411,7 +430,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   profileChip: {
-    backgroundColor: colors.backgroundInput,
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     borderRadius: radius.sm,
@@ -419,21 +438,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   profileChipSelected: {
-    borderColor: colors.borderGold,
-    backgroundColor: colors.backgroundHighlight,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
   },
   profileChipText: {
     ...typography.caption,
     color: colors.textSecondary,
   },
   profileChipTextSelected: {
-    color: colors.goldLight,
+    color: colors.primary,
     fontWeight: '600',
   },
   addProfileButton: {
-    backgroundColor: colors.backgroundHighlight,
+    backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
     borderRadius: radius.sm,
     paddingVertical: spacing.sm,
     alignItems: 'center',
@@ -441,10 +460,10 @@ const styles = StyleSheet.create({
   addProfileText: {
     ...typography.caption,
     fontWeight: '600',
-    color: colors.gold,
+    color: colors.primary,
   },
   purchaseButton: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     borderRadius: radius.md,
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',
@@ -458,6 +477,6 @@ const styles = StyleSheet.create({
   purchaseButtonText: {
     ...typography.body,
     fontWeight: '700',
-    color: colors.textInverse,
+    color: '#FFFFFF',
   },
 });

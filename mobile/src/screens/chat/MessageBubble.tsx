@@ -1,18 +1,20 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Share,
+  Animated,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import type { ChatMessage, ConsultationStreamPhase } from '@astroai/shared-types';
-import { colors, radius, spacing, typography } from '../../theme';
+import type { ChatMessage, ConsultationStreamPhase, GuruProfile } from '@astroai/shared-types';
+import { colors, radius, shadows, spacing, typography } from '../../theme';
+import { InteractiveWidgetCard } from './InteractiveWidgetCard';
+import { AstroIcon } from '../../components/ui/AstroIcon';
 
 interface Props {
   message: ChatMessage;
+  guru?: GuruProfile;
   /** Live-accumulated text while this message is still streaming in —
    * falls back to `message.content` once it's complete. */
   streamingText?: string;
@@ -27,19 +29,100 @@ const EMOJI_REGEX = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F
 function getPhaseText(phase?: ConsultationStreamPhase): string {
   switch (phase) {
     case 'UNDERSTANDING':
-      return 'Acharya is understanding your question…';
+      return 'Listening…';
     case 'ANALYZING_CHART':
-      return 'Acharya is reading your chart…';
+      return 'Analyzing your Kundli…';
     case 'GENERATING':
-      return 'Acharya is preparing your reading…';
     case 'STREAMING':
-      return 'Acharya is speaking…';
+      return 'Acharya is typing…';
     default:
-      return 'Acharya is reading your chart…';
+      return 'Acharya is typing…';
   }
 }
 
-function renderFormattedText(text: string, isUser: boolean) {
+/**
+ * Animated 3-dot bouncing typing indicator.
+ */
+function TypingDots() {
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const createBounce = (anim: Animated.Value) =>
+      Animated.sequence([
+        Animated.timing(anim, {
+          toValue: -4,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(anim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]);
+
+    const loop = Animated.loop(
+      Animated.stagger(150, [
+        createBounce(dot1),
+        createBounce(dot2),
+        createBounce(dot3),
+      ]),
+    );
+
+    loop.start();
+    return () => loop.stop();
+  }, [dot1, dot2, dot3]);
+
+  return (
+    <View style={styles.dotsContainer}>
+      <Animated.View
+        style={[styles.typingDot, { transform: [{ translateY: dot1 }] }]}
+      />
+      <Animated.View
+        style={[styles.typingDot, { transform: [{ translateY: dot2 }] }]}
+      />
+      <Animated.View
+        style={[styles.typingDot, { transform: [{ translateY: dot3 }] }]}
+      />
+    </View>
+  );
+}
+
+/**
+ * Blinking golden typing cursor rendered at the end of streaming text.
+ */
+function BlinkingCursor() {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const blink = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.2,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    blink.start();
+    return () => blink.stop();
+  }, [opacity]);
+
+  return (
+    <Animated.Text style={[styles.cursor, { opacity }]}>
+      {' ▍'}
+    </Animated.Text>
+  );
+}
+
+function renderFormattedText(text: string, isUser: boolean, isStreaming = false) {
   const cleanedText = text.replace(EMOJI_REGEX, '').replace(/  +/g, ' ');
   if (isUser) {
     return <Text style={[styles.bubbleText, styles.bubbleTextUser]}>{cleanedText}</Text>;
@@ -61,8 +144,19 @@ function renderFormattedText(text: string, isUser: boolean) {
         }
         return <Text key={index}>{part}</Text>;
       })}
+      {isStreaming && <BlinkingCursor />}
     </Text>
   );
+}
+
+function formatTime(dateStr?: string) {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
 }
 
 export function MessageBubble({
@@ -70,48 +164,43 @@ export function MessageBubble({
   streamingText,
   phase,
   onRetry,
-  onRegenerate,
   onFeedback,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'user';
+  const hasLiveStreamingText =
+    streamingText !== undefined && streamingText.length > 0;
+  const isCurrentlyStreaming =
+    message.status === 'streaming' ||
+    (hasLiveStreamingText && message.status !== 'complete');
   const displayText =
-    message.status === 'streaming' && streamingText !== undefined
+    hasLiveStreamingText
       ? streamingText
       : message.content;
 
-  function handleCopy() {
+  function handleLongPress() {
     Clipboard.setString(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
 
-  function handleShare() {
-    void Share.share({ message: message.content });
-  }
+  const timeLabel = formatTime(message.createdAt);
 
   return (
     <View style={[styles.row, isUser ? styles.rowUser : styles.rowAssistant]}>
-      {!isUser && (
-        <View style={styles.astrologerHeaderRow}>
-          <View style={styles.avatarBadge}>
-            <Text style={styles.avatarLetter}>V</Text>
-          </View>
-          <Text style={styles.astrologerName}>Acharya Vashishta</Text>
-          <View style={styles.onlineDot} />
-        </View>
-      )}
-
-      <View
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onLongPress={handleLongPress}
+        delayLongPress={300}
         style={[
           styles.bubble,
           isUser ? styles.bubbleUser : styles.bubbleAssistant,
         ]}
       >
         {message.status === 'pending' ||
-        (message.status === 'streaming' && displayText.length === 0) ? (
+        (isCurrentlyStreaming && displayText.length === 0) ? (
           <View style={styles.typingRow}>
-            <ActivityIndicator size="small" color={colors.gold} />
+            <TypingDots />
             <Text style={styles.typingText}>{getPhaseText(phase)}</Text>
           </View>
         ) : message.status === 'failed' ? (
@@ -128,70 +217,43 @@ export function MessageBubble({
             </TouchableOpacity>
           </View>
         ) : (
-          renderFormattedText(displayText, isUser)
-        )}
-      </View>
+          <View>
+            {renderFormattedText(displayText, isUser, isCurrentlyStreaming)}
+            {!isUser && message.interactiveWidget && !isCurrentlyStreaming ? (
+              <InteractiveWidgetCard widget={message.interactiveWidget} />
+            ) : null}
 
-      {!isUser && message.status === 'complete' && (
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            onPress={handleCopy}
-            accessibilityRole="button"
-            accessibilityLabel="Copy guidance"
-          >
-            <Text style={styles.actionText}>{copied ? 'Copied' : 'Copy'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleShare}
-            accessibilityRole="button"
-            accessibilityLabel="Share reading"
-          >
-            <Text style={styles.actionText}>Share</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => onFeedback(message.id, 'up')}
-            accessibilityRole="button"
-            accessibilityLabel="Helpful guidance"
-          >
-            <Text
-              style={[
-                styles.actionText,
-                message.feedback?.rating === 'up' && styles.actionTextActive,
-              ]}
-            >
-              Helpful
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => onFeedback(message.id, 'down')}
-            accessibilityRole="button"
-            accessibilityLabel="Unclear guidance"
-          >
-            <Text
-              style={[
-                styles.actionText,
-                message.feedback?.rating === 'down' && styles.actionTextActive,
-              ]}
-            >
-              Unclear
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => onRegenerate(message.id)}
-            accessibilityRole="button"
-            accessibilityLabel="Re-consult on this question"
-          >
-            <Text style={styles.actionText}>Re-consult</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+            {/* Subtle Timestamp, Copied & Feedback Indicator */}
+            <View style={styles.timeRow}>
+              {copied && <Text style={styles.copiedText}>Copied  </Text>}
+              {!isUser && message.status === 'complete' && !isCurrentlyStreaming && (
+                <View style={styles.feedbackRow}>
+                  <TouchableOpacity
+                    onPress={() => onFeedback(message.id, 'up')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Helpful guidance"
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <AstroIcon
+                      name="heart"
+                      size={12}
+                      color={message.feedback?.rating === 'up' ? colors.primary : colors.textMuted}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+              {timeLabel ? <Text style={styles.timeText}>{timeLabel}</Text> : null}
+            </View>
+          </View>
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    marginVertical: spacing.xs,
+    marginVertical: 4,
     paddingHorizontal: spacing.md,
   },
   rowUser: {
@@ -200,108 +262,99 @@ const styles = StyleSheet.create({
   rowAssistant: {
     alignItems: 'flex-start',
   },
-  astrologerHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-    marginLeft: 2,
-    gap: 6,
-  },
-  avatarBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    backgroundColor: colors.backgroundCardElevated,
-    borderWidth: 1,
-    borderColor: colors.borderGold,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarLetter: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.gold,
-  },
-  astrologerName: {
-    ...typography.caption,
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textGold,
-  },
-  onlineDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: colors.success,
-  },
   bubble: {
-    maxWidth: '90%',
-    borderRadius: radius.md,
+    maxWidth: '86%',
+    borderRadius: 18,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
   },
   bubbleUser: {
-    backgroundColor: colors.backgroundCardElevated,
-    borderWidth: 1,
-    borderColor: colors.borderDefault,
-    borderBottomRightRadius: radius.sm,
+    backgroundColor: colors.primary,
+    borderBottomRightRadius: 4,
+    ...shadows.card,
   },
   bubbleAssistant: {
     backgroundColor: colors.backgroundCard,
     borderWidth: 1,
-    borderColor: colors.borderGold,
-    borderBottomLeftRadius: radius.sm,
+    borderColor: colors.borderSubtle,
+    borderBottomLeftRadius: 4,
+    ...shadows.card,
   },
   bubbleText: {
-    ...typography.body,
-    color: colors.textPrimary,
+    fontSize: 14.5,
     lineHeight: 22,
+    color: colors.textPrimary,
   },
   bubbleTextUser: {
-    color: colors.textPrimary,
+    color: '#FFFFFF',
   },
   boldText: {
     fontWeight: '700',
-    color: colors.goldLight,
+    color: colors.primary,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  timeText: {
+    fontSize: 10,
+    color: colors.textMuted,
+  },
+  copiedText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.gold,
   },
   typingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 2,
+    paddingVertical: 4,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    height: 14,
+    paddingHorizontal: 2,
+  },
+  typingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.gold,
+  },
+  cursor: {
+    color: colors.gold,
+    fontWeight: '900',
+    fontSize: 15,
   },
   typingText: {
-    ...typography.caption,
+    fontSize: 12,
     color: colors.textGold,
     fontStyle: 'italic',
   },
   errorText: {
-    ...typography.bodySecondary,
+    fontSize: 13,
     color: colors.danger,
     marginBottom: spacing.xs,
   },
   retryButton: {
     alignSelf: 'flex-start',
-    paddingVertical: 2,
+    paddingVertical: 4,
   },
   retryButtonText: {
-    ...typography.caption,
-    color: colors.gold,
-    fontWeight: '600',
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: 4,
-    paddingLeft: 4,
-  },
-  actionText: {
-    ...typography.caption,
-    fontSize: 11,
-    color: colors.textMuted,
-  },
-  actionTextActive: {
+    fontSize: 12,
     color: colors.gold,
     fontWeight: '700',
+  },
+  feedbackRow: {
+    marginRight: 6,
+  },
+  feedbackIcon: {
+    fontSize: 12,
+    opacity: 0.8,
   },
 });

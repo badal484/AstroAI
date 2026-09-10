@@ -9,15 +9,40 @@ export const ResponseAction = {
   GREET_AND_DISCOVER: 'GREET_AND_DISCOVER',
   ACKNOWLEDGE_SHORT: 'ACKNOWLEDGE_SHORT',
   HANDLE_AMBIGUITY: 'HANDLE_AMBIGUITY',
+  HANDLE_DISMISSAL: 'HANDLE_DISMISSAL',
+  PROMPT_CONTINUATION: 'PROMPT_CONTINUATION',
+  HANDLE_FRUSTRATION: 'HANDLE_FRUSTRATION',
+  HANDLE_CHALLENGE: 'HANDLE_CHALLENGE',
+  HANDLE_GENERICNESS: 'HANDLE_GENERICNESS',
+  HANDLE_SARCASM: 'HANDLE_SARCASM',
+  HANDLE_SHORT_DEMAND: 'HANDLE_SHORT_DEMAND',
+  HANDLE_CERTAINTY_DEMAND: 'HANDLE_CERTAINTY_DEMAND',
   SAFETY_GUARD: 'SAFETY_GUARD',
 } as const;
 
 export type ResponseAction = (typeof ResponseAction)[keyof typeof ResponseAction];
 
+export const ResponseShape = {
+  SHAPE_A_DIRECT_ANSWER: 'SHAPE_A_DIRECT_ANSWER',
+  SHAPE_B_OBSERVATION_INTERPRETATION: 'SHAPE_B_OBSERVATION_INTERPRETATION',
+  SHAPE_C_CLARIFICATION_FIRST: 'SHAPE_C_CLARIFICATION_FIRST',
+  SHAPE_D_SHORT_ACKNOWLEDGMENT_CLOSURE: 'SHAPE_D_SHORT_ACKNOWLEDGMENT_CLOSURE',
+  SHAPE_E_DIRECT_ANSWER_ONE_REASON: 'SHAPE_E_DIRECT_ANSWER_ONE_REASON',
+  SHAPE_F_HUMAN_OBSERVATION_OPTIONAL_ASTROLOGY: 'SHAPE_F_HUMAN_OBSERVATION_OPTIONAL_ASTROLOGY',
+  SHAPE_G_MULTI_FACTOR_READING: 'SHAPE_G_MULTI_FACTOR_READING',
+  SHAPE_H_CORRECTION_CONSISTENCY: 'SHAPE_H_CORRECTION_CONSISTENCY',
+  SHAPE_I_SAFETY_FIRST: 'SHAPE_I_SAFETY_FIRST',
+} as const;
+
+export type ResponseShape = (typeof ResponseShape)[keyof typeof ResponseShape];
+
 export const ReadingDepth = {
-  QUICK: 'QUICK',
+  MICRO: 'MICRO',
+  SHORT: 'SHORT',
   STANDARD: 'STANDARD',
   DEEP: 'DEEP',
+  CONSULTATION: 'CONSULTATION',
+  QUICK: 'QUICK',
   PREMIUM: 'PREMIUM',
 } as const;
 
@@ -26,8 +51,11 @@ export type ReadingDepth = (typeof ReadingDepth)[keyof typeof ReadingDepth];
 export interface ResponseStrategy {
   action: ResponseAction;
   depth: ReadingDepth;
+  shape?: ResponseShape;
   leadWithEmpathy: boolean;
   askClarification: boolean;
   clarificationQuestion?: string;
   suggestedFollowUpTopics: string[];
+  maxQuestions?: number; // 0 for closure / complete answers; max 1 for clarification
 }
+

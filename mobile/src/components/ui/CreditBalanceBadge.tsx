@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { fetchWalletBalance } from '../../lib/walletApi';
-import { colors, radius, spacing, typography } from '../../theme';
+import { colors, radius, shadows, spacing, typography } from '../../theme';
 import type { AppStackParamList } from '../../navigation/AppStack';
 
 interface CreditBalanceBadgeProps {
@@ -68,48 +68,48 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: '#EEF2FF',
     borderWidth: 1,
-    borderColor: colors.borderGold,
-    borderRadius: radius.md,
-    paddingVertical: spacing.xxs + 2,
-    paddingHorizontal: spacing.sm,
-    gap: spacing.xs,
+    borderColor: 'rgba(79, 70, 229, 0.15)',
+    borderRadius: radius.full,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    gap: 4,
   },
   coinDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
   },
   textContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   balanceText: {
-    ...typography.caption,
-    fontWeight: '700',
-    color: colors.textGoldLight,
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
   },
   label: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontSize: 11,
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: colors.primaryDark,
   },
   plusContainer: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.gold,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 2,
+    marginLeft: 1,
   },
   plusText: {
-    fontSize: 11,
-    fontWeight: '800',
+    fontSize: 10,
+    fontWeight: '900',
     color: colors.textInverse,
-    lineHeight: 12,
+    lineHeight: 11,
   },
 });

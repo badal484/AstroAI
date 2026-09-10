@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
-    paddingBottom: spacing.xxxl,
+    paddingBottom: 90,
     gap: spacing.md,
   },
   topBar: {
@@ -233,16 +233,16 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.backgroundHighlight,
+    backgroundColor: colors.primaryLight,
     borderWidth: 1.5,
-    borderColor: colors.gold,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.goldLight,
+    color: colors.primary,
   },
   profileInfo: {
     flex: 1,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    color: colors.textGold,
+    color: colors.primary,
     marginBottom: spacing.xs,
   },
   menuRow: {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+    borderBottomColor: colors.borderSubtle,
     gap: spacing.md,
   },
   menuIcon: {
@@ -315,12 +315,12 @@ const styles = StyleSheet.create({
   },
   logoutRow: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.04)',
+    borderBottomColor: colors.borderSubtle,
   },
   logoutText: {
     ...typography.body,
     fontWeight: '600',
-    color: colors.goldLight,
+    color: colors.primary,
   },
   destructiveRow: {
     borderBottomWidth: 0,

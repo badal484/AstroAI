@@ -15,9 +15,9 @@ export const factExtractor = {
   extractFactsFromMessage(text: string): ExtractedFact[] {
     const facts: ExtractedFact[] = [];
 
-    // 1. Career & Profession
-    if (/\b(i am a|i work as a|working as|profession is)\s+([a-z\s]{3,30})/i.test(text)) {
-      const match = text.match(/\b(?:i am a|i work as a|working as|profession is)\s+([a-zA-Z\s]{3,30})/i);
+    // 1. Career, Profession & Competitive Exams
+    if (/\b(i am a|i work as a|working as|profession is|main ek)\s+([a-z\s]{3,30})/i.test(text)) {
+      const match = text.match(/\b(?:i am a|i work as a|working as|profession is|main ek)\s+([a-zA-Z\s]{3,30})/i);
       if (match && match[1]) {
         facts.push({
           category: MemoryCategory.CAREER,
@@ -26,8 +26,18 @@ export const factExtractor = {
           fact: `Works as ${match[1].trim()}`,
         });
       }
-    } else if (/\b(preparing for|exam for|studying for)\s+([a-z\s]{3,30})/i.test(text)) {
-      const match = text.match(/\b(?:preparing for|exam for|studying for)\s+([a-zA-Z\s]{3,30})/i);
+    } else if (/\b(upsc|ias|ips|gate|cat|neet|iit|jee|ca|bank po|ssc|cgl|sarkari naukri|govt exam)\b/i.test(text)) {
+      const match = text.match(/\b(upsc|ias|ips|gate|cat|neet|iit|jee|ca|bank po|ssc|cgl|sarkari naukri|govt exam)\b/i);
+      if (match && match[1]) {
+        facts.push({
+          category: MemoryCategory.CAREER,
+          key: 'preparation',
+          value: match[1].toUpperCase(),
+          fact: `Preparing for ${match[1].toUpperCase()} exam`,
+        });
+      }
+    } else if (/\b(preparing for|exam for|studying for|ki taiyari|ka exam)\s+([a-z\s]{3,30})/i.test(text)) {
+      const match = text.match(/\b(?:preparing for|exam for|studying for|ki taiyari|ka exam)\s+([a-zA-Z\s]{3,30})/i);
       if (match && match[1]) {
         facts.push({
           category: MemoryCategory.CAREER,
@@ -36,8 +46,8 @@ export const factExtractor = {
           fact: `Preparing for ${match[1].trim()}`,
         });
       }
-    } else if (/\b(software engineer|developer|doctor|lawyer|teacher|designer|marketer|consultant|accountant)\b/i.test(text)) {
-      const match = text.match(/\b(software engineer|developer|doctor|lawyer|teacher|designer|marketer|consultant|accountant)\b/i);
+    } else if (/\b(software engineer|developer|doctor|lawyer|teacher|designer|marketer|consultant|accountant|data scientist)\b/i.test(text)) {
+      const match = text.match(/\b(software engineer|developer|doctor|lawyer|teacher|designer|marketer|consultant|accountant|data scientist)\b/i);
       if (match && match[1]) {
         facts.push({
           category: MemoryCategory.CAREER,
@@ -48,9 +58,16 @@ export const factExtractor = {
       }
     }
 
-    // 2. Relationship Status
-    if (/\b(my girlfriend|my boyfriend|my partner|my wife|my husband)\s+(?:name is\s+)?([A-Z][a-z]+)/.test(text)) {
-      const match = text.match(/\b(my girlfriend|my boyfriend|my partner|my wife|my husband)\s+(?:name is\s+)?([A-Z][a-z]+)/);
+    // 2. Relationship Status & Specific Entities
+    if (/\b(girlfriend nahi|gf nahi|not girlfriend)[,\s]+(wife|patni)\b/i.test(text)) {
+      facts.push({
+        category: MemoryCategory.RELATIONSHIP,
+        key: 'relationshipStatus',
+        value: 'married',
+        fact: 'Clarified relationship status: Married (Wife, not girlfriend)',
+      });
+    } else if (/\b(my girlfriend|my boyfriend|my partner|my wife|my husband|meri girlfriend|meri wife|mera partner)\s+(?:name is\s+|ka naam\s+)?([A-Z][a-z]+)/.test(text)) {
+      const match = text.match(/\b(my girlfriend|my boyfriend|my partner|my wife|my husband|meri girlfriend|meri wife|mera partner)\s+(?:name is\s+|ka naam\s+)?([A-Z][a-z]+)/);
       if (match && match[1] && match[2]) {
         facts.push({
           category: MemoryCategory.RELATIONSHIP,
@@ -59,12 +76,19 @@ export const factExtractor = {
           fact: `${match[1]} named ${match[2]}`,
         });
       }
-    } else if (/\b(i am single|unmarried|single hoon|not married)\b/i.test(text)) {
+    } else if (/\b(i am single|unmarried|single hoon|not married|abhi single)\b/i.test(text)) {
       facts.push({
         category: MemoryCategory.RELATIONSHIP,
         key: 'relationshipStatus',
         value: 'single',
         fact: 'Currently single / unmarried',
+      });
+    } else if (/\b(breakup ho gaya|breakup hua|alag ho gaye|separated)\b/i.test(text)) {
+      facts.push({
+        category: MemoryCategory.RELATIONSHIP,
+        key: 'relationshipStatus',
+        value: 'breakup / separated',
+        fact: 'Recently experienced a relationship separation or breakup',
       });
     } else if (/\b(married for\s+\d+\s+years|shaadi ko\s+\d+\s+saal)\b/i.test(text)) {
       const match = text.match(/\b(?:married for|shaadi ko)\s+(\d+)\s+(?:years|saal)\b/i);
@@ -78,8 +102,13 @@ export const factExtractor = {
       }
     }
 
-    // 3. Family Context
-    if (/\b(have\s+(\d+|one|two|three)\s+(?:kids|children|daughters?|sons?))\b/i.test(text)) {
+    // 3. Family Context & Health
+    if (/\b(mummy|papa|father|mother|bhai|brother|sister|behan)\s+(?:ki health|ki tabiyat|bimar|ill|hospital)\b/i.test(text)) {
+      facts.push({
+        category: MemoryCategory.FAMILY,
+        fact: 'Expressed concern regarding family member health / well-being',
+      });
+    } else if (/\b(have\s+(\d+|one|two|three)\s+(?:kids|children|daughters?|sons?))\b/i.test(text)) {
       const match = text.match(/\b(have\s+(\d+|one|two|three)\s+(?:kids|children|daughters?|sons?))\b/i);
       if (match && match[1]) {
         facts.push({
@@ -90,20 +119,20 @@ export const factExtractor = {
     }
 
     // 4. Goals & Aspirations
-    if (/\b(want to start a|planning to start a|thinking of starting a)\s+(business|startup|company|venture|firm)\b/i.test(text)) {
+    if (/\b(want to start a|planning to start a|thinking of starting a|startup shuru)\s+(business|startup|company|venture|firm)\b/i.test(text)) {
       facts.push({
         category: MemoryCategory.GOALS,
         fact: 'Aspires to launch a business / startup venture',
       });
-    } else if (/\b(planning to buy a\s+(?:home|house|flat|property)|ghar khareedna chahta)\b/i.test(text)) {
+    } else if (/\b(planning to buy a\s+(?:home|house|flat|property)|ghar khareedna chahta|makan lena)\b/i.test(text)) {
       facts.push({
         category: MemoryCategory.GOALS,
         fact: 'Planning to purchase a home / property',
       });
-    } else if (/\b(planning (?:to go|for)\s+(?:abroad|master'?s|foreign studies|ms|mba))\b/i.test(text)) {
+    } else if (/\b(planning (?:to go|for)\s+(?:abroad|master'?s|foreign studies|ms|mba)|videsh jana)\b/i.test(text)) {
       facts.push({
         category: MemoryCategory.GOALS,
-        fact: 'Planning for higher studies / Master’s degree abroad',
+        fact: 'Planning for higher studies / relocation abroad',
       });
     }
 

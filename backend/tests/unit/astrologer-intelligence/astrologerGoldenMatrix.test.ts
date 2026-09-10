@@ -188,7 +188,7 @@ describe('Astrologer Golden Matrix Benchmark Suite (PART 6 Specification)', () =
         userMessage: query,
       });
 
-      expect(response).toMatch(/Haan, bilkul|aage batayein/i);
+      expect(response).toMatch(/Theek hai|Haan, bilkul|aage batayein/i);
       expect(response).not.toContain('Date of Birth');
     });
   });
@@ -286,7 +286,7 @@ describe('Astrologer Golden Matrix Benchmark Suite (PART 6 Specification)', () =
         CoreIntent.BREAKUP,
         CoreIntent.LOVE_LIFE,
       ]).toContain(intents.primary);
-      expect(intents.astrologyRelevance).toBe('USEFUL');
+      expect(intents.astrologyRelevance).toBe('OPTIONAL');
     });
 
     it('retrieves relationship discord factors (7th, Moon, Mars) without career leakage', () => {

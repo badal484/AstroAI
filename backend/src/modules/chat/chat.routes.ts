@@ -3,6 +3,7 @@ import {
   createConversationSchema,
   feedbackSchema,
   paginationQuerySchema,
+  proactiveGreetingQuerySchema,
   sendMessageSchema,
   suggestedQuestionsQuerySchema,
 } from '@astroai/shared-types';
@@ -40,6 +41,11 @@ chatRouter.get(
   '/conversations/:id/suggested-questions',
   validateQuery(suggestedQuestionsQuerySchema),
   chatController.suggestedQuestions,
+);
+chatRouter.get(
+  '/conversations/:id/proactive-greeting',
+  validateQuery(proactiveGreetingQuerySchema),
+  chatController.proactiveGreeting,
 );
 
 chatRouter.get(

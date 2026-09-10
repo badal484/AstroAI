@@ -6,6 +6,7 @@ import type {
 } from './reasoningTypes';
 import { getTopicMapping, type TopicAstrologyMapping } from '../astrology-context/topicMappings';
 import { timingEngine } from './timingEngine';
+import { shastraPramana } from './shastraPramana';
 
 export const astrologyReasoningEngine = {
   reason(astrologyContext: FilteredAstrologyContext): StructuredAstrologyReasoning {
@@ -18,6 +19,7 @@ export const astrologyReasoningEngine = {
       moonNakshatra,
       relevantHouses,
       relevantPlanets,
+      evidencePacket,
     } = astrologyContext;
     const mapping: TopicAstrologyMapping = getTopicMapping(topic);
 
@@ -29,6 +31,137 @@ export const astrologyReasoningEngine = {
     const remedies: string[] = [...mapping.remedyFocus];
     const uncertaintyNotes: string[] = [];
 
+    // If evidencePacket is present (Round 5 structured evidence), use its grounded synthesis
+    if (evidencePacket && available) {
+      const confidence: 'HIGH' | 'MODERATE' | 'LOW' =
+        evidencePacket.timeConfidence === 'exact'
+          ? 'HIGH'
+          : evidencePacket.timeConfidence === 'approximate'
+            ? 'MODERATE'
+            : 'LOW';
+
+      if (evidencePacket.timeConfidence === 'approximate' || evidencePacket.timeConfidence === 'unknown') {
+        uncertaintyNotes.push('Birth time is approximate; ascendant degree and exact sub-period timing carry calibrated variation.');
+      }
+
+      const mapSourceToCategory = (source: string): AstrologicalFactor['category'] => {
+        if (source === 'D1_RASI') return 'HOUSE_LORD';
+        if (source === 'DASHA_MD' || source === 'DASHA_AD') return 'DASHA_PERIOD';
+        if (source === 'TRANSIT') return 'TRANSIT_GOCHAR';
+        if (source === 'D9_NAVAMSHA' || source === 'D10_DASHAMSHA') return 'DIVISIONAL_CHART';
+        if (source === 'NAKSHATRA') return 'NAKSHATRA';
+        if (source === 'YOGA') return 'YOGA';
+        return 'HOUSE_LORD';
+      };
+
+      for (const ef of evidencePacket.rankedEvidence) {
+        const factor: AstrologicalFactor = {
+          factor: ef.factorName,
+          category: mapSourceToCategory(ef.source),
+          influence: ef.influence,
+          weight: ef.weight,
+          description: `${ef.technicalPlacement} — ${ef.significance}`,
+        };
+        primaryFactors.push(factor);
+      }
+
+      for (const sf of evidencePacket.supportingFactors) {
+        supportingFactors.push({
+          factor: sf.factorName,
+          category: mapSourceToCategory(sf.source),
+          influence: 'SUPPORTIVE',
+          weight: sf.weight,
+          description: `${sf.technicalPlacement} — ${sf.significance}`,
+        });
+      }
+
+      for (const cf of evidencePacket.challengingFactors) {
+        challengingFactors.push({
+          factor: cf.factorName,
+          category: mapSourceToCategory(cf.source),
+          influence: 'CHALLENGING',
+          weight: cf.weight,
+          description: `${cf.technicalPlacement} — ${cf.significance}`,
+        });
+      }
+
+      if (evidencePacket.activeDasha) {
+        const dashaFact: AstrologicalFactor = {
+          factor: evidencePacket.activeDasha.antardasha
+            ? `Dasha ${evidencePacket.activeDasha.mahadasha}-${evidencePacket.activeDasha.antardasha}`
+            : `Mahadasha of ${evidencePacket.activeDasha.mahadasha}`,
+          category: 'DASHA_PERIOD',
+          influence: 'SUPPORTIVE',
+          weight: 5,
+          description: evidencePacket.activeDasha.theme,
+        };
+        timingFactors.push(dashaFact);
+      }
+
+      for (const tr of evidencePacket.activeTransits) {
+        timingFactors.push({
+          factor: `Transit ${tr.planet} in ${tr.currentSign}`,
+          category: 'TRANSIT_GOCHAR',
+          influence: 'SUPPORTIVE',
+          weight: 4,
+          description: tr.impact,
+        });
+      }
+
+      for (const contra of evidencePacket.contradictions) {
+        contradictions.push({
+          factor: `${contra.title} (${contra.type})`,
+          category: 'DRISHTI_ASPECT',
+          influence: 'NEUTRAL',
+          weight: 4,
+          description: `${contra.supportingFactor} vs ${contra.challengingFactor}. Guidance: ${contra.resolutionGuidance}`,
+        });
+      }
+
+      const timingWindows = timingEngine.calculateTimingWindows(astrologyContext);
+
+      let overallSignal: AstrologicalInterpretation['overallSignal'] = 'positive';
+      if (evidencePacket.overallEvidenceSignal === 'MIXED' || (supportingFactors.length > 0 && challengingFactors.length > 0)) {
+        overallSignal = 'mixed';
+      } else if (evidencePacket.overallEvidenceSignal === 'CHALLENGING' || challengingFactors.length > supportingFactors.length) {
+        overallSignal = 'challenging';
+      } else if (evidencePacket.overallEvidenceSignal === 'POSITIVE' || supportingFactors.length > 0) {
+        overallSignal = 'positive';
+      } else {
+        overallSignal = 'unclear';
+      }
+
+      const interpretation: AstrologicalInterpretation = {
+        topic,
+        supportingFactors,
+        challengingFactors,
+        timingFactors,
+        contradictions,
+        overallSignal,
+        confidence,
+        timingWindow: timingWindows,
+        methodologyVersion: 'Parashari_Classical_v2.0',
+        ruleVersion: '2026.09_Round5',
+        astrologyEngineVersion: 'VedicAstrologyEngine_v2',
+      };
+
+      const summary = `Astrological evidence synthesized for ${topic}: ${overallSignal} signal, ${supportingFactors.length} supporting, ${challengingFactors.length} challenging, ${contradictions.length} nuances, timing: ${evidencePacket.timing.primaryWindow}.`;
+      const aphorism = shastraPramana.getRelevantAphorism(topic);
+
+      return {
+        topic,
+        confidence,
+        primaryFactors,
+        timingWindows,
+        remedies,
+        uncertaintyNotes,
+        userFacingExplanationSummary: summary,
+        interpretation,
+        shastraPramana: aphorism,
+      };
+    }
+
+    // Fallback if evidencePacket is not generated (e.g. chart missing or default path)
     let confidence: 'HIGH' | 'MODERATE' | 'LOW' = 'MODERATE';
     if (!available) {
       confidence = 'LOW';
@@ -268,6 +401,7 @@ export const astrologyReasoningEngine = {
     };
 
     const summary = `Astrological reasoning synthesized: ${topic} focus (${overallSignal} signal), ${supportingFactors.length} supporting factors, ${challengingFactors.length} challenging factors, ${timingWindows.length} timing windows identified.`;
+    const aphorism = shastraPramana.getRelevantAphorism(topic);
 
     return {
       topic,
@@ -278,6 +412,7 @@ export const astrologyReasoningEngine = {
       uncertaintyNotes,
       userFacingExplanationSummary: summary,
       interpretation,
+      shastraPramana: aphorism,
     };
   },
 };

@@ -29,6 +29,26 @@ const aiSessionSubSchema = new Schema(
   { _id: false },
 );
 
+const quickReplyChipSubSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    label: { type: String, required: true },
+    query: { type: String, required: true },
+    icon: { type: String, default: null },
+  },
+  { _id: false },
+);
+
+const interactiveWidgetSubSchema = new Schema(
+  {
+    type: { type: String, required: true },
+    title: { type: String, required: true },
+    subtitle: { type: String, default: null },
+    data: { type: Schema.Types.Mixed, default: {} },
+  },
+  { _id: false },
+);
+
 const messageSchema = new Schema(
   {
     conversationId: { type: Schema.Types.ObjectId, ref: 'Conversation', required: true },
@@ -48,6 +68,10 @@ const messageSchema = new Schema(
     errorMessage: { type: String, default: null },
     feedback: { type: feedbackSubSchema, default: null },
     aiSession: { type: aiSessionSubSchema, default: null },
+    quickReplyChips: { type: [quickReplyChipSubSchema], default: null },
+    interactiveWidget: { type: interactiveWidgetSubSchema, default: null },
+    audioUrl: { type: String, default: null },
+    audioDurationSeconds: { type: Number, default: null },
     regeneratedFromMessageId: { type: Schema.Types.ObjectId, ref: 'Message', default: null },
     // Only set on user messages — the idempotency key that prevents a
     // retried "send" request from creating a duplicate (CLAUDE.md

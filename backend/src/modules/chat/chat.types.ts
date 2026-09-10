@@ -12,6 +12,7 @@ export function toConversation(doc: ConversationDocument): Conversation {
     id: doc._id.toString(),
     userId: doc.userId.toString(),
     birthProfileId: doc.birthProfileId ? doc.birthProfileId.toString() : null,
+    personaId: (doc.personaId as any) ?? null,
     title: doc.title,
     language: doc.language ?? null,
     lastMessageAt: doc.lastMessageAt ? doc.lastMessageAt.toISOString() : null,
@@ -48,6 +49,24 @@ export function toChatMessage(doc: MessageDocument): ChatMessage {
           latencyMs: doc.aiSession.latencyMs ?? null,
         }
       : null,
+    quickReplyChips: doc.quickReplyChips
+      ? doc.quickReplyChips.map((c) => ({
+          id: c.id,
+          label: c.label,
+          query: c.query,
+          icon: c.icon ?? undefined,
+        }))
+      : null,
+    interactiveWidget: doc.interactiveWidget
+      ? {
+          type: doc.interactiveWidget.type as any,
+          title: doc.interactiveWidget.title,
+          subtitle: doc.interactiveWidget.subtitle ?? undefined,
+          data: doc.interactiveWidget.data ?? {},
+        }
+      : null,
+    audioUrl: doc.audioUrl ?? null,
+    audioDurationSeconds: doc.audioDurationSeconds ?? null,
     regeneratedFromMessageId: doc.regeneratedFromMessageId
       ? doc.regeneratedFromMessageId.toString()
       : null,

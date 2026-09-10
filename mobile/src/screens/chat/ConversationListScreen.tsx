@@ -19,7 +19,7 @@ import {
 } from '../../lib/chatApi';
 import { formatRelativeTime } from '../../lib/relativeTime';
 import type { AppStackParamList } from '../../navigation/AppStack';
-import { colors, radius, spacing, typography } from '../../theme';
+import { colors, radius, shadows, spacing, typography } from '../../theme';
 
 type Nav = NativeStackNavigationProp<AppStackParamList, 'ConversationList'>;
 
@@ -104,6 +104,14 @@ export function ConversationListScreen() {
 
   return (
     <View style={styles.screen}>
+      {/* Top Header Bar */}
+      <View style={styles.topHeader}>
+        <View>
+          <Text style={styles.headerTitle}>Vedic Consultations</Text>
+          <Text style={styles.headerSubtitle}>Real-time Guidance with Acharyas</Text>
+        </View>
+      </View>
+
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
@@ -174,8 +182,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  topHeader: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+    backgroundColor: colors.backgroundElevated,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSubtle,
+  },
+  headerTitle: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    fontWeight: '700',
+  },
+  headerSubtitle: {
+    ...typography.caption,
+    color: colors.textGold,
+    marginTop: 2,
+  },
   listContent: {
     padding: spacing.md,
+    paddingBottom: 90,
     gap: spacing.sm,
   },
   centered: {
@@ -200,6 +227,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flexGrow: 1,
+    paddingBottom: 90,
   },
   emptyState: {
     flex: 1,
@@ -245,21 +273,22 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.xs,
     gap: spacing.sm,
+    ...shadows.card,
   },
   cardIconBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    backgroundColor: colors.backgroundHighlight,
+    width: 38,
+    height: 38,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(79, 70, 229, 0.08)',
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardIconLetter: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
   cardBody: {
     flex: 1,
@@ -281,11 +310,13 @@ const styles = StyleSheet.create({
     paddingRight: 4,
   },
   newChatButton: {
-    backgroundColor: colors.gold,
-    paddingVertical: spacing.md,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.md - 2,
     alignItems: 'center',
-    margin: spacing.md,
+    marginHorizontal: spacing.md,
+    marginBottom: 74,
     borderRadius: radius.md,
+    ...shadows.goldGlow,
   },
   newChatButtonDisabled: {
     opacity: 0.5,

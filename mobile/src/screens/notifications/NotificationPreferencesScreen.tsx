@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import type { UserNotificationPreferenceDTO } from '@astroai/shared-types';
 import { notificationApi } from '../../lib/notificationApi';
+import { colors, radius, spacing, typography } from '../../theme';
 
 export function NotificationPreferencesScreen() {
   const [preferences, setPreferences] = useState<UserNotificationPreferenceDTO | null>(null);
@@ -101,7 +102,7 @@ export function NotificationPreferencesScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -123,8 +124,8 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={optedOut}
             onValueChange={setOptedOut}
-            trackColor={{ false: '#334155', true: '#ef4444' }}
-            thumbColor={optedOut ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.danger }}
+            thumbColor={optedOut ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
       </View>
@@ -141,8 +142,8 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={quietHoursEnabled}
             onValueChange={setQuietHoursEnabled}
-            trackColor={{ false: '#334155', true: '#6366f1' }}
-            thumbColor={quietHoursEnabled ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+            thumbColor={quietHoursEnabled ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
 
@@ -197,11 +198,11 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={pushEnabled}
             onValueChange={setPushEnabled}
-            trackColor={{ false: '#334155', true: '#6366f1' }}
-            thumbColor={pushEnabled ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+            thumbColor={pushEnabled ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
-        <View style={[styles.switchRow, { borderTopWidth: 1, borderTopColor: '#1e293b', paddingTop: 12 }]}>
+        <View style={[styles.switchRow, { borderTopWidth: 1, borderTopColor: colors.borderSubtle, paddingTop: 12 }]}>
           <View style={styles.switchTextContainer}>
             <Text style={styles.switchTitle}>Email Notifications</Text>
             <Text style={styles.switchDesc}>Report PDF links and payment receipts</Text>
@@ -209,8 +210,8 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={emailEnabled}
             onValueChange={setEmailEnabled}
-            trackColor={{ false: '#334155', true: '#6366f1' }}
-            thumbColor={emailEnabled ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+            thumbColor={emailEnabled ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
       </View>
@@ -223,8 +224,8 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={horoscopeEnabled}
             onValueChange={setHoroscopeEnabled}
-            trackColor={{ false: '#334155', true: '#6366f1' }}
-            thumbColor={horoscopeEnabled ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+            thumbColor={horoscopeEnabled ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
         <View style={styles.switchRow}>
@@ -232,8 +233,8 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={consultationEnabled}
             onValueChange={setConsultationEnabled}
-            trackColor={{ false: '#334155', true: '#6366f1' }}
-            thumbColor={consultationEnabled ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+            thumbColor={consultationEnabled ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
         <View style={styles.switchRow}>
@@ -241,8 +242,8 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={lifecycleEnabled}
             onValueChange={setLifecycleEnabled}
-            trackColor={{ false: '#334155', true: '#6366f1' }}
-            thumbColor={lifecycleEnabled ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+            thumbColor={lifecycleEnabled ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
         <View style={styles.switchRow}>
@@ -250,8 +251,8 @@ export function NotificationPreferencesScreen() {
           <Switch
             value={marketingEnabled}
             onValueChange={setMarketingEnabled}
-            trackColor={{ false: '#334155', true: '#6366f1' }}
-            thumbColor={marketingEnabled ? '#ffffff' : '#94a3b8'}
+            trackColor={{ false: colors.borderSubtle, true: colors.primary }}
+            thumbColor={marketingEnabled ? '#FFFFFF' : '#CBD5E1'}
           />
         </View>
       </View>
@@ -287,7 +288,7 @@ export function NotificationPreferencesScreen() {
         style={[styles.saveButton, saving && styles.buttonDisabled]}
       >
         {saving ? (
-          <ActivityIndicator size="small" color="#ffffff" />
+          <ActivityIndicator size="small" color="#FFFFFF" />
         ) : (
           <Text style={styles.saveButtonText}>Save Preferences</Text>
         )}
@@ -299,48 +300,49 @@ export function NotificationPreferencesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090d16',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#090d16',
+    backgroundColor: colors.background,
   },
   content: {
-    padding: 16,
+    padding: spacing.md,
     paddingBottom: 40,
   },
   screenHeader: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#f8fafc',
+    ...typography.h2,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   subHeader: {
-    fontSize: 13,
-    color: '#94a3b8',
-    marginBottom: 20,
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
     lineHeight: 18,
   },
   sectionCard: {
-    backgroundColor: '#0f172a',
-    borderRadius: 14,
-    padding: 16,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#1e293b',
-    marginBottom: 16,
+    borderColor: colors.borderSubtle,
+    marginBottom: spacing.md,
   },
   sectionTitle: {
+    ...typography.h3,
     fontSize: 15,
     fontWeight: '600',
-    color: '#e2e8f0',
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   sectionDesc: {
+    ...typography.caption,
     fontSize: 12,
-    color: '#64748b',
-    marginBottom: 12,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
     lineHeight: 16,
   },
   switchRow: {
@@ -354,72 +356,74 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   switchTitle: {
-    fontSize: 14,
+    ...typography.body,
     fontWeight: '600',
-    color: '#f1f5f9',
+    color: colors.textPrimary,
   },
   switchDesc: {
+    ...typography.caption,
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   rowLabel: {
-    fontSize: 14,
-    color: '#f1f5f9',
+    ...typography.body,
+    color: colors.textPrimary,
   },
   quietHoursContainer: {
     marginTop: 10,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: colors.borderSubtle,
   },
   hourSelector: {
     marginBottom: 4,
   },
   hourLabel: {
+    ...typography.caption,
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   hourButtonsRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.xs,
   },
   hourBadge: {
     flex: 1,
     paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#1e293b',
+    borderRadius: radius.sm,
+    backgroundColor: colors.backgroundElevated,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
   },
   langBadge: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#1e293b',
+    borderRadius: radius.sm,
+    backgroundColor: colors.backgroundElevated,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
   },
   hourBadgeActive: {
-    backgroundColor: '#4f46e5',
-    borderColor: '#6366f1',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   hourBadgeText: {
     fontSize: 12,
-    color: '#cbd5e1',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   hourBadgeTextActive: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   saveButton: {
-    backgroundColor: '#6366f1',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: radius.md,
     alignItems: 'center',
     marginTop: 8,
   },
@@ -427,7 +431,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },

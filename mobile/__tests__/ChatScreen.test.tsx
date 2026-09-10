@@ -17,6 +17,10 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({
     params: { conversationId: 'conv-1', title: 'Test chat' },
   }),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+  }),
 }));
 
 jest.mock('../src/lib/chatApi', () => ({
@@ -121,7 +125,7 @@ describe('ChatScreen', () => {
 
     await renderScreen();
 
-    expect(await screen.findByText('Acharya Vashishta')).toBeTruthy();
+    expect((await screen.findAllByText('Acharya Vashishta')).length).toBeGreaterThan(0);
     expect(await screen.findByText('What is a nakshatra?')).toBeTruthy();
     expect(screen.getByText('हिंदी')).toBeTruthy();
   });
@@ -134,11 +138,11 @@ describe('ChatScreen', () => {
     );
 
     await renderScreen();
-    await screen.findByText('Acharya Vashishta');
+    await screen.findAllByText('Acharya Vashishta');
 
     const input = screen.getByPlaceholderText(/Ask Acharya/i);
     await interact(() => fireEvent.changeText(input, 'What about my career?'));
-    await interact(() => fireEvent.press(screen.getByText('Ask')));
+    await interact(() => fireEvent.press(screen.getByText('↑')));
 
     expect(mockSendMessage).toHaveBeenCalledWith('conv-1', {
       content: 'What about my career?',

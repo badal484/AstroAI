@@ -1,55 +1,88 @@
 /**
- * AstroAI Mobile Theme & Vedic Design Tokens
- * Defines a calm, trustworthy, premium, modern Indian spiritual technology aesthetic.
- * Primary Astrologer: Acharya Vashishta
+ * AstroAI Mobile Theme & Modern Design Tokens
+ * Modern Electric Indigo & Monochrome (Linear / Apple Editorial Light Mode)
+ * Crisp Porcelain, Deep Slate Typography, Electric Indigo & Ice Blue Accents.
  */
 
 export const colors = {
-  // Backgrounds & Surfaces (Restrained Deep Midnight & Charcoal Navy)
-  background: '#0B0F19',
-  backgroundElevated: '#121827',
-  backgroundCard: '#121827',
-  backgroundCardElevated: '#1B2236',
-  backgroundGlass: 'rgba(18, 24, 39, 0.92)',
-  backgroundInput: '#161D2F',
-  backgroundHighlight: 'rgba(212, 163, 71, 0.08)',
+  // Backgrounds & Surfaces (Clean Crisp Porcelain & Slate)
+  background: '#F8FAFC',
+  backgroundElevated: '#FFFFFF',
+  backgroundCard: '#FFFFFF',
+  backgroundCardElevated: '#F1F5F9',
+  backgroundGlass: 'rgba(255, 255, 255, 0.95)',
+  backgroundGlassHover: 'rgba(241, 245, 249, 0.98)',
+  backgroundInput: '#F1F5F9',
+  backgroundHighlight: 'rgba(79, 70, 229, 0.08)',
+  backgroundGoldTint: 'rgba(79, 70, 229, 0.05)',
 
-  // Brand / Vedic Gold & Spiritual Accents (Antique Gold & Subtle Saffron)
-  gold: '#D4A347',
-  goldLight: '#E9C16C',
-  goldDark: '#B88930',
-  goldMuted: 'rgba(212, 163, 71, 0.12)',
-  goldGlow: 'rgba(212, 163, 71, 0.15)',
-  saffron: '#D96B27',
-  celestialIndigo: '#5C6F9C',
-  mysticPurple: '#7E69AB', // Muted, restrained secondary accent
+  // Brand / Electric Indigo & Cosmic Highlights (Zero Gold / Zero Orange)
+  primary: '#4F46E5',
+  primaryLight: '#6366F1',
+  primaryDark: '#4338CA',
+  primaryMuted: 'rgba(79, 70, 229, 0.08)',
+  indigo: '#4F46E5',
+  indigoLight: '#6366F1',
+  indigoDark: '#4338CA',
+  indigoMuted: 'rgba(79, 70, 229, 0.08)',
+  iceBlue: '#EEF2FF',
+  frostSilver: '#E2E8F0',
+
+  // Backward compatible aliases mapped to Electric Indigo
+  gold: '#4F46E5',
+  goldLight: '#6366F1',
+  goldDark: '#4338CA',
+  goldMuted: 'rgba(79, 70, 229, 0.08)',
+  goldGlow: 'rgba(79, 70, 229, 0.18)',
+  goldBorder: 'rgba(79, 70, 229, 0.25)',
+  saffron: '#6366F1',
+  saffronLight: '#818CF8',
+  saffronDark: '#4F46E5',
+  saffronMuted: 'rgba(99, 102, 241, 0.08)',
+  celestialIndigo: '#4F46E5',
+  mysticPurple: '#7C3AED',
+  mysticPurpleLight: '#8B5CF6',
+  mysticPurpleMuted: 'rgba(124, 58, 237, 0.08)',
 
   // Semantic Status & Feedback
   success: '#10B981',
-  successBackground: 'rgba(16, 185, 129, 0.12)',
+  successLight: '#34D399',
+  successBackground: 'rgba(16, 185, 129, 0.10)',
   warning: '#F59E0B',
-  warningBackground: 'rgba(245, 158, 11, 0.12)',
+  warningLight: '#FCD34D',
+  warningBackground: 'rgba(245, 158, 11, 0.10)',
   danger: '#EF4444',
-  dangerBackground: 'rgba(239, 68, 68, 0.12)',
-  info: '#38BDF8',
-  infoBackground: 'rgba(56, 189, 248, 0.12)',
+  dangerLight: '#F87171',
+  dangerBackground: 'rgba(239, 68, 68, 0.10)',
+  error: '#EF4444',
+  errorLight: 'rgba(239, 68, 68, 0.10)',
+  errorBackground: 'rgba(239, 68, 68, 0.10)',
+  info: '#0284C7',
+  infoBackground: 'rgba(2, 132, 199, 0.10)',
+  cardShadow: '#0F172A',
 
-  // Typography & Text (WCAG AAA/AA Compliant High Contrast)
-  textPrimary: '#F8FAFC',
-  textSecondary: '#94A3B8',
-  textMuted: '#64748B',
-  textInverse: '#0B0F19',
-  textGold: '#E2B857',
-  textGoldLight: '#FDE68A',
+  // Typography & Text (Deep Obsidian Slate & High Contrast Legibility)
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
+  textInverse: '#FFFFFF',
+  textGold: '#4F46E5',
+  textGoldLight: '#6366F1',
+  textSaffron: '#6366F1',
+  textEmerald: '#059669',
 
-  // Borders & Dividers
-  borderSubtle: 'rgba(255, 255, 255, 0.08)',
-  borderDefault: 'rgba(255, 255, 255, 0.14)',
-  borderGold: 'rgba(212, 163, 71, 0.28)',
-  borderFocus: '#D4A347',
+  // Borders & Dividers (Crisp 1px Hairline Borders)
+  borderSubtle: '#E2E8F0',
+  borderDefault: '#CBD5E1',
+  borderElevated: '#94A3B8',
+  borderGold: 'rgba(79, 70, 229, 0.25)',
+  borderGoldSubtle: 'rgba(79, 70, 229, 0.12)',
+  borderFocus: '#4F46E5',
 
-  // Overlays
-  overlay: 'rgba(11, 15, 25, 0.85)',
+  // Overlays & Floating Navigation
+  overlay: 'rgba(15, 23, 42, 0.60)',
+  tabBarBackground: '#FFFFFF',
+  tabBarBorder: '#E2E8F0',
 };
 
 export const typography = {
@@ -62,7 +95,7 @@ export const typography = {
   h1: {
     fontSize: 22,
     lineHeight: 28,
-    fontWeight: '600' as const,
+    fontWeight: '700' as const,
     color: colors.textPrimary,
   },
   h2: {
@@ -126,33 +159,42 @@ export const spacing = {
 
 export const radius = {
   none: 0,
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  xs: 4,
+  sm: 6,
+  md: 10,
+  lg: 14,
+  xl: 20,
+  xxl: 28,
   full: 9999,
 };
 
 export const shadows = {
   card: {
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 2,
   },
   elevated: {
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     elevation: 4,
   },
   goldGlow: {
-    shadowColor: colors.gold,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.20,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  saffronGlow: {
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 3,
   },
 };

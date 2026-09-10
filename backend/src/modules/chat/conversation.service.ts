@@ -1,4 +1,4 @@
-import type { Conversation, PaginatedResult } from '@astroai/shared-types';
+import type { Conversation, GuruPersonaId, PaginatedResult } from '@astroai/shared-types';
 import { birthProfileService } from '../birthProfiles';
 import { NotFoundError } from '../../shared/errors';
 import { conversationRepository } from './conversation.repository';
@@ -11,7 +11,7 @@ const AUTO_TITLE_MAX_LENGTH = 60;
 export const conversationService = {
   async create(
     userId: string,
-    input: { birthProfileId?: string; title?: string },
+    input: { birthProfileId?: string; personaId?: GuruPersonaId; title?: string },
   ): Promise<Conversation> {
     if (input.birthProfileId) {
       // Ownership-checked read — throws NotFoundError if the birth profile
@@ -23,6 +23,7 @@ export const conversationService = {
     const doc = await conversationRepository.create({
       userId,
       birthProfileId: input.birthProfileId ?? null,
+      personaId: input.personaId ?? null,
       title: input.title?.trim() || DEFAULT_CONVERSATION_TITLE,
     });
     return toConversation(doc);

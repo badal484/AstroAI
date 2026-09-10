@@ -456,7 +456,7 @@ describe('Razorpay Payments & Reconciliation Integration Tests', () => {
 
   describe('Admin Management & Reconciliation', () => {
     it('allows Finance role to list payments and reconcile order', async () => {
-      const { accessCookie } = await createAdminAndLogin(AdminRole.FINANCE, 'finance_list@astroai.test');
+      const { accessCookie } = await createAdminAndLogin(AdminRole.FINANCE, 'finance_list_unique_rec@astroai.test');
       const { user } = await createAuthedUser();
 
       const order = await paymentService.createOrder(user.id, {

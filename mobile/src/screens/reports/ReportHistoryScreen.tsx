@@ -55,9 +55,9 @@ export function ReportHistoryScreen() {
       case 'queued':
         return { label: 'QUEUED', bg: colors.warningBackground, text: colors.warning };
       case 'calculating':
-        return { label: 'CALCULATING', bg: colors.backgroundHighlight, text: colors.goldLight };
+        return { label: 'CALCULATING', bg: colors.indigoMuted, text: colors.primary };
       case 'interpreting':
-        return { label: 'SYNTHESIZING', bg: colors.backgroundHighlight, text: colors.goldLight };
+        return { label: 'SYNTHESIZING', bg: colors.indigoMuted, text: colors.primary };
       case 'generating_pdf':
         return { label: 'GENERATING PDF', bg: colors.backgroundElevated, text: colors.textSecondary };
       default:
@@ -106,7 +106,7 @@ export function ReportHistoryScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.gold} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading report history...</Text>
       </View>
     );
@@ -141,8 +141,8 @@ export function ReportHistoryScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={colors.gold}
-              colors={[colors.gold]}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
             />
           }
         />
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   cardCredits: {
     ...typography.bodySecondary,
-    color: colors.goldLight,
+    color: colors.primary,
     fontWeight: '600',
   },
   failureNoteContainer: {
@@ -247,9 +247,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: radius.md,
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.indigoMuted,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xs,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   emptyIconLetter: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
   emptyTitle: {
     ...typography.h2,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   orderBtn: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.md,

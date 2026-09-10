@@ -16,42 +16,43 @@ import { AIProviderName, ModelAlias, type AIRoutingConfig } from '@astroai/share
  */
 export const DEFAULT_AI_ROUTING: AIRoutingConfig = {
   [ModelAlias.FAST_CHAT]: [
+    { provider: AIProviderName.GEMINI, model: 'gemini-3.5-flash-lite' },
     { provider: AIProviderName.MISTRAL, model: 'mistral-small-latest' },
     { provider: AIProviderName.OPENAI, model: 'gpt-4o-mini' },
-    { provider: AIProviderName.GEMINI, model: 'gemini-2.0-flash' },
     { provider: AIProviderName.ANTHROPIC, model: 'claude-3-5-haiku-latest' },
   ],
   [ModelAlias.SMART_CHAT]: [
+    { provider: AIProviderName.GEMINI, model: 'gemini-3.5-flash-lite' },
     { provider: AIProviderName.MISTRAL, model: 'mistral-large-latest' },
     { provider: AIProviderName.ANTHROPIC, model: 'claude-sonnet-4-5' },
     { provider: AIProviderName.OPENAI, model: 'gpt-4o' },
-    { provider: AIProviderName.GEMINI, model: 'gemini-2.5-pro' },
   ],
   [ModelAlias.REASONING]: [
+    { provider: AIProviderName.GEMINI, model: 'gemini-3.5-flash-lite' },
+    { provider: AIProviderName.MISTRAL, model: 'mistral-large-latest' },
     { provider: AIProviderName.OPENAI, model: 'o3-mini' },
     { provider: AIProviderName.ANTHROPIC, model: 'claude-sonnet-4-5' },
-    { provider: AIProviderName.GEMINI, model: 'gemini-2.5-pro' },
-    { provider: AIProviderName.MISTRAL, model: 'mistral-large-latest' },
   ],
   [ModelAlias.VOICE_CHAT]: [
+    { provider: AIProviderName.GEMINI, model: 'gemini-3.5-flash-lite' },
     { provider: AIProviderName.MISTRAL, model: 'mistral-small-latest' },
     { provider: AIProviderName.OPENAI, model: 'gpt-4o-mini' },
-    { provider: AIProviderName.GEMINI, model: 'gemini-2.0-flash' },
   ],
   [ModelAlias.REPORT_GENERATION]: [
+    { provider: AIProviderName.GEMINI, model: 'gemini-3.5-flash-lite' },
     { provider: AIProviderName.MISTRAL, model: 'mistral-large-latest' },
     { provider: AIProviderName.ANTHROPIC, model: 'claude-sonnet-4-5' },
     { provider: AIProviderName.OPENAI, model: 'gpt-4o' },
   ],
   [ModelAlias.SUMMARIZATION]: [
+    { provider: AIProviderName.GEMINI, model: 'gemini-3.5-flash-lite' },
     { provider: AIProviderName.MISTRAL, model: 'mistral-small-latest' },
     { provider: AIProviderName.OPENAI, model: 'gpt-4o-mini' },
-    { provider: AIProviderName.GEMINI, model: 'gemini-2.0-flash' },
     { provider: AIProviderName.ANTHROPIC, model: 'claude-3-5-haiku-latest' },
   ],
   [ModelAlias.CLASSIFICATION]: [
+    { provider: AIProviderName.GEMINI, model: 'gemini-3.5-flash-lite' },
     { provider: AIProviderName.MISTRAL, model: 'mistral-small-latest' },
     { provider: AIProviderName.OPENAI, model: 'gpt-4o-mini' },
-    { provider: AIProviderName.GEMINI, model: 'gemini-2.0-flash' },
   ],
 };

@@ -15,6 +15,7 @@ import {
   PromotionValidationResultDTO,
 } from '@astroai/shared-types';
 import { promotionApi } from '../../lib/promotionApi';
+import { colors, radius, spacing, typography } from '../../theme';
 
 interface ApplyPromoModalProps {
   visible: boolean;
@@ -120,7 +121,7 @@ export function ApplyPromoModal({
               style={[styles.applyButton, (!promoCode.trim() || validating) && styles.applyButtonDisabled]}
             >
               {validating ? (
-                <ActivityIndicator size="small" color="#030712" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <Text style={styles.applyButtonText}>Apply</Text>
               )}
@@ -184,59 +185,60 @@ export function ApplyPromoModal({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#0f172a',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
+    backgroundColor: colors.backgroundCard,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    padding: spacing.lg,
     maxHeight: '80%',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.borderSubtle,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   modalTitle: {
+    ...typography.h3,
     fontSize: 18,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: colors.textPrimary,
   },
   closeButton: {
     padding: 6,
   },
   closeButtonText: {
     fontSize: 16,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     fontWeight: '700',
   },
   inputRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
   },
   input: {
     flex: 1,
-    backgroundColor: '#020617',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 12,
+    borderColor: colors.borderSubtle,
+    borderRadius: radius.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: '#f8fafc',
+    color: colors.textPrimary,
     fontSize: 14,
     fontWeight: '700',
     fontFamily: 'monospace',
   },
   applyButton: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: colors.primary,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -244,52 +246,54 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   applyButtonText: {
-    color: '#030712',
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
   },
   resultBanner: {
     padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
   },
   resultBannerSuccess: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    backgroundColor: colors.successBackground,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: colors.success,
   },
   resultBannerError: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: colors.dangerBackground,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: colors.danger,
   },
   resultText: {
+    ...typography.caption,
     fontSize: 13,
     fontWeight: '600',
   },
   resultTextSuccess: {
-    color: '#10b981',
+    color: colors.success,
   },
   resultTextError: {
-    color: '#ef4444',
+    color: colors.danger,
   },
   confirmButton: {
     marginTop: 8,
-    backgroundColor: '#10b981',
+    backgroundColor: colors.success,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     alignItems: 'center',
   },
   confirmButtonText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
   },
   availableSectionTitle: {
-    fontSize: 13,
+    ...typography.overline,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#cbd5e1',
+    color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 10,
@@ -298,12 +302,12 @@ const styles = StyleSheet.create({
     maxHeight: 260,
   },
   offerCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
+    backgroundColor: colors.backgroundElevated,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.xs,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
   },
   offerHeader: {
     flexDirection: 'row',
@@ -314,27 +318,29 @@ const styles = StyleSheet.create({
   offerCode: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#f59e0b',
+    color: colors.primary,
     fontFamily: 'monospace',
   },
   offerBadge: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#10b981',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    color: colors.success,
+    backgroundColor: colors.successBackground,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 6,
+    borderRadius: radius.sm,
   },
   offerName: {
+    ...typography.caption,
     fontSize: 13,
     fontWeight: '600',
-    color: '#f8fafc',
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   offerDesc: {
+    ...typography.caption,
     fontSize: 11,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     lineHeight: 16,
   },
 });

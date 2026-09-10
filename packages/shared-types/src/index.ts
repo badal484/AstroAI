@@ -17,3 +17,4 @@ export * from './notification';
 export * from './promotion';
 export * from './adminControl';
 export * from './analytics';
+export * from './puja';

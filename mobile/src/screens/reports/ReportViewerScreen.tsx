@@ -15,6 +15,7 @@ import { ReportStatus } from '@astroai/shared-types';
 import type { ReportDetailDTO } from '@astroai/shared-types';
 import { env } from '../../config/env';
 import { reportApi } from '../../lib/reportApi';
+import { colors, radius, spacing, typography } from '../../theme';
 
 type RouteParams = {
   ReportViewer: { reportId: string };
@@ -96,7 +97,7 @@ export function ReportViewerScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Fetching report details...</Text>
       </View>
     );
@@ -132,7 +133,16 @@ export function ReportViewerScreen() {
                 : styles.badgeProcessing,
             ]}
           >
-            <Text style={styles.statusBadgeText}>
+            <Text
+              style={[
+                styles.statusBadgeText,
+                isCompleted
+                  ? styles.badgeTextCompleted
+                  : isFailed
+                  ? styles.badgeTextFailed
+                  : styles.badgeTextProcessing,
+              ]}
+            >
               {report.status.replace(/_/g, ' ').toUpperCase()}
             </Text>
           </View>
@@ -145,7 +155,7 @@ export function ReportViewerScreen() {
         {/* Processing State Animation */}
         {!isCompleted && !isFailed && (
           <View style={styles.processingBanner}>
-            <ActivityIndicator size="small" color="#6366f1" />
+            <ActivityIndicator size="small" color={colors.primary} />
             <Text style={styles.processingBannerText}>
               Pipeline active: Calculating celestial charts & AI insights...
             </Text>
@@ -308,31 +318,36 @@ export function ReportViewerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
   },
   contentContainer: {
-    padding: 16,
+    padding: spacing.md,
+    gap: spacing.md,
     paddingBottom: 40,
-    gap: 16,
   },
   centerContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
     gap: 12,
   },
   loadingText: {
-    color: '#94a3b8',
+    color: colors.textSecondary,
     fontSize: 14,
   },
   headerCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 14,
-    padding: 16,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.lg,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
     gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -340,172 +355,197 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   reportTypeTitle: {
+    ...typography.h3,
     fontSize: 15,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: colors.textPrimary,
     flex: 1,
     marginRight: 8,
   },
   reportDate: {
+    ...typography.caption,
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textSecondary,
   },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: radius.sm,
+    borderWidth: 1,
   },
   badgeCompleted: {
-    backgroundColor: '#064e3b',
+    backgroundColor: colors.successBackground,
+    borderColor: colors.success,
   },
   badgeFailed: {
-    backgroundColor: '#7f1d1d',
+    backgroundColor: colors.dangerBackground,
+    borderColor: colors.danger,
   },
   badgeProcessing: {
-    backgroundColor: '#312e81',
+    backgroundColor: colors.primaryLight,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
   },
   statusBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#ffffff',
+  },
+  badgeTextCompleted: {
+    color: colors.success,
+  },
+  badgeTextFailed: {
+    color: colors.danger,
+  },
+  badgeTextProcessing: {
+    color: colors.primary,
   },
   processingBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#1e1b4b',
+    backgroundColor: colors.primaryLight,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
   },
   processingBannerText: {
     fontSize: 12,
-    color: '#a5b4fc',
+    color: colors.primary,
     flex: 1,
   },
   failureBox: {
-    backgroundColor: '#450a0a',
+    backgroundColor: colors.dangerBackground,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.danger,
     gap: 8,
   },
   failureText: {
     fontSize: 12,
-    color: '#fca5a5',
+    color: colors.danger,
   },
   retryBtn: {
-    backgroundColor: '#ef4444',
+    backgroundColor: colors.danger,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: radius.sm,
     alignItems: 'center',
   },
   disabledBtn: {
     opacity: 0.6,
   },
   retryBtnText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
   },
   downloadPdfBtn: {
-    backgroundColor: '#6366f1',
+    backgroundColor: colors.primary,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: radius.md,
     alignItems: 'center',
     marginTop: 4,
   },
   downloadPdfBtnText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: '#1e293b',
-    borderRadius: 10,
+    backgroundColor: colors.backgroundElevated,
+    borderRadius: radius.md,
     padding: 4,
     gap: 4,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
   },
   tabBtn: {
     flex: 1,
     paddingVertical: 8,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: radius.sm,
   },
   activeTabBtn: {
-    backgroundColor: '#334155',
+    backgroundColor: colors.primary,
   },
   tabText: {
+    ...typography.caption,
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   activeTabText: {
-    color: '#ffffff',
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   tabContent: {
     gap: 14,
   },
   scoreSummaryCard: {
-    backgroundColor: '#1e1b4b',
-    borderRadius: 12,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.lg,
     padding: 18,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#4338ca',
+    borderColor: 'rgba(79, 70, 229, 0.2)',
   },
   scoreSummaryLabel: {
     fontSize: 13,
-    color: '#a5b4fc',
+    color: colors.primary,
     fontWeight: '600',
   },
   scoreSummaryValue: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#ffffff',
+    color: colors.primary,
     marginTop: 4,
   },
   scoreSummaryPercent: {
     fontSize: 13,
-    color: '#34d399',
+    color: colors.success,
     fontWeight: '700',
     marginTop: 2,
   },
   astrologyCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 12,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
     gap: 8,
   },
   cardSectionTitle: {
+    ...typography.h3,
     fontSize: 14,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   factRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: colors.borderSubtle,
   },
   factLabel: {
+    ...typography.caption,
     fontSize: 13,
-    color: '#94a3b8',
+    color: colors.textSecondary,
   },
   factValue: {
+    ...typography.caption,
     fontSize: 13,
     fontWeight: '600',
-    color: '#e2e8f0',
+    color: colors.textPrimary,
   },
   ashtakootaTable: {
-    backgroundColor: '#1e293b',
-    borderRadius: 12,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
     gap: 10,
   },
   kootaRow: {
@@ -514,51 +554,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#334155',
+    borderBottomColor: colors.borderSubtle,
   },
   kootaLeft: {
     flex: 1,
     marginRight: 8,
   },
   kootaName: {
+    ...typography.caption,
     fontSize: 13,
     fontWeight: '600',
-    color: '#f8fafc',
+    color: colors.textPrimary,
   },
   kootaDesc: {
+    ...typography.caption,
     fontSize: 11,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   kootaScore: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#a5b4fc',
+    color: colors.primary,
   },
   mangalCard: {
-    backgroundColor: '#451a03',
-    borderRadius: 12,
+    backgroundColor: colors.warningBackground,
+    borderRadius: radius.md,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#78350f',
+    borderColor: colors.warning,
     gap: 6,
   },
   mangalTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#fbbf24',
+    color: colors.warning,
   },
   mangalDesc: {
     fontSize: 12,
-    color: '#fde68a',
+    color: colors.textPrimary,
     lineHeight: 16,
   },
   sectionCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 12,
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.borderSubtle,
     gap: 8,
   },
   sectionHeaderRow: {
@@ -567,22 +609,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionCardTitle: {
+    ...typography.h3,
     fontSize: 14,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: colors.textPrimary,
   },
   sectionCategoryTag: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#a5b4fc',
-    backgroundColor: '#312e81',
+    color: colors.primary,
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   sectionBodyText: {
+    ...typography.body,
     fontSize: 13,
-    color: '#cbd5e1',
+    color: colors.textSecondary,
     lineHeight: 19,
   },
 });

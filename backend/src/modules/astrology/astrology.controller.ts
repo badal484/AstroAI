@@ -1,11 +1,17 @@
 import type { Request, Response } from 'express';
 import type {
+  AnalyzePalmInput,
   ApiSuccessResponse,
+  CastPrashnaInput,
   CompatibilityRequest,
   TransitsQuery,
 } from '@astroai/shared-types';
 import { asyncHandler } from '../../shared/asyncHandler';
 import { astrologyService } from './astrology.service';
+import { cosmicRadarEngine } from './engine/cosmicRadarEngine';
+import { palmistryService } from './palmistry.service';
+import { prashnaService } from './prashna.service';
+import { dashaService } from './dasha.service';
 
 function ok<T>(req: Request, res: Response, data: T, status = 200): void {
   const body: ApiSuccessResponse<T> = { success: true, data, requestId: req.requestId };
@@ -39,5 +45,28 @@ export const astrologyController = {
       birthProfileIdB,
     );
     ok(req, res, score, 200);
+  }),
+
+  getCosmicRadar: asyncHandler(async (req: Request, res: Response) => {
+    const radar = cosmicRadarEngine.calculate();
+    ok(req, res, radar, 200);
+  }),
+
+  analyzePalm: asyncHandler(async (req: Request, res: Response) => {
+    const input = req.body as AnalyzePalmInput;
+    const result = await palmistryService.analyzePalm(req.user!.id, input);
+    ok(req, res, result, 200);
+  }),
+
+  castPrashna: asyncHandler(async (req: Request, res: Response) => {
+    const input = req.body as CastPrashnaInput;
+    const result = prashnaService.castPrashna(input);
+    ok(req, res, result, 200);
+  }),
+
+  getDashaTimeline: asyncHandler(async (req: Request, res: Response) => {
+    const birthProfileId = req.query.birthProfileId as string | undefined;
+    const timeline = await dashaService.getDashaTimeline(req.user!.id, birthProfileId);
+    ok(req, res, timeline, 200);
   }),
 };

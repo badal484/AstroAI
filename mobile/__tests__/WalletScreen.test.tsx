@@ -145,7 +145,7 @@ describe('WalletScreen', () => {
     });
 
     expect(await screen.findByText(/Acharya Written Query/i)).toBeTruthy();
-    expect(await screen.findByText(/Live Voice Consultation/i)).toBeTruthy();
+    expect(await screen.findByText(/Welcome Signup Credits/i)).toBeTruthy();
     expect(await screen.findByText(/Full Kundli/i)).toBeTruthy();
   });
 });

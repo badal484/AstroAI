@@ -38,4 +38,10 @@ describe('postProcessResponse', () => {
     const messy = 'Hello there.\n\n\n\nHow are you feeling   today?';
     expect(postProcessResponse(messy, null)).toBe('Hello there.\n\nHow are you feeling today?');
   });
+
+  it('strips artificial chatbot preambles and generic closing fillers', () => {
+    const raw = 'Certainly! Looking at your Leo Lagna, Jupiter enters your 10th house on April 14. Hope this helps!';
+    const processed = postProcessResponse(raw, null);
+    expect(processed).toBe('Looking at your Leo Lagna, Jupiter enters your 10th house on April 14.');
+  });
 });

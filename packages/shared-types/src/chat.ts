@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { SupportedLanguage, type ConversationRole, type IntentCategory } from './astrologer';
+import {
+  GuruPersonaId,
+  SupportedLanguage,
+  type ConversationRole,
+  type IntentCategory,
+} from './astrologer';
 import type { AIProviderName } from './ai';
 
 /**
@@ -41,6 +46,31 @@ export interface MessageAiSession {
   latencyMs: number | null;
 }
 
+export type InteractiveWidgetType =
+  | 'muhurat'
+  | 'kundli_snapshot'
+  | 'remedy'
+  | 'transit_alert'
+  | 'prashna_chart'
+  | 'planetary_strength'
+  | 'palmistry_analysis'
+  | 'puja_booking'
+  | 'dasha_timeline';
+
+export interface QuickReplyChip {
+  id: string;
+  label: string;
+  query: string;
+  icon?: string;
+}
+
+export interface InteractiveWidget {
+  type: InteractiveWidgetType;
+  title: string;
+  subtitle?: string;
+  data: Record<string, any>;
+}
+
 export interface ChatMessage {
   id: string;
   conversationId: string;
@@ -53,6 +83,10 @@ export interface ChatMessage {
   errorMessage: string | null;
   feedback: MessageFeedback | null;
   aiSession: MessageAiSession | null;
+  quickReplyChips?: QuickReplyChip[] | null;
+  interactiveWidget?: InteractiveWidget | null;
+  audioUrl?: string | null;
+  audioDurationSeconds?: number | null;
   /** Set on an assistant message created by retry/regenerate — points at
    * the assistant message it's replacing, so history isn't silently lost. */
   regeneratedFromMessageId: string | null;
@@ -64,6 +98,7 @@ export interface Conversation {
   id: string;
   userId: string;
   birthProfileId: string | null;
+  personaId?: GuruPersonaId | null;
   title: string;
   language: SupportedLanguage | null;
   lastMessageAt: string | null;
@@ -73,6 +108,7 @@ export interface Conversation {
 
 export const createConversationSchema = z.object({
   birthProfileId: z.string().trim().min(1).optional(),
+  personaId: z.nativeEnum(GuruPersonaId).optional(),
   title: z.string().trim().min(1).max(100).optional(),
 });
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;
@@ -99,6 +135,18 @@ export const feedbackSchema = z.object({
   comment: z.string().trim().max(1000).optional(),
 });
 export type FeedbackInput = z.infer<typeof feedbackSchema>;
+
+export interface ProactiveGreetingResult {
+  content: string;
+  quickReplyChips: QuickReplyChip[];
+  audioDurationSeconds?: number;
+}
+
+export const proactiveGreetingQuerySchema = z.object({
+  language: z.nativeEnum(SupportedLanguage).optional(),
+  personaId: z.nativeEnum(GuruPersonaId).optional(),
+});
+export type ProactiveGreetingQuery = z.infer<typeof proactiveGreetingQuerySchema>;
 
 export const ConsultationStreamPhase = {
   UNDERSTANDING: 'UNDERSTANDING',

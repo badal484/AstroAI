@@ -147,3 +147,132 @@ export const compatibilityRequestSchema = z.object({
   birthProfileIdB: z.string().trim().min(1),
 });
 export type CompatibilityRequest = z.infer<typeof compatibilityRequestSchema>;
+
+export interface PalmLineDetails {
+  name: string;
+  sanskritName: string;
+  prominence: 'deep' | 'moderate' | 'faint';
+  quality: string;
+  interpretation: string;
+  kundliCorrelation: string;
+}
+
+export interface PalmMountDetails {
+  name: string;
+  planet: Planet;
+  strength: number;
+  status: 'well_developed' | 'average' | 'depressed';
+  interpretation: string;
+}
+
+export interface PalmistryAnalysisResult {
+  dominantHand: 'right' | 'left';
+  elementalHandType: 'Earth (Prithvi)' | 'Water (Jala)' | 'Fire (Agni)' | 'Air (Vayu)';
+  lines: {
+    lifeLine: PalmLineDetails;
+    heartLine: PalmLineDetails;
+    headLine: PalmLineDetails;
+    fateLine: PalmLineDetails;
+    sunLine?: PalmLineDetails;
+  };
+  mounts: PalmMountDetails[];
+  samudrikaSynthesis: string;
+  overallScore: number;
+  recommendedRemedies: string[];
+}
+
+export const analyzePalmSchema = z.object({
+  hand: z.enum(['right', 'left']).default('right'),
+  birthProfileId: z.string().optional(),
+  imageUrl: z.string().optional(),
+  features: z.record(z.any()).optional(),
+});
+export type AnalyzePalmInput = z.infer<typeof analyzePalmSchema>;
+
+export type PrashnaVerdict = 'favorable' | 'delayed' | 'challenging_requires_upay';
+
+export interface PrashnaYoga {
+  name: string;
+  type: 'ithasala' | 'ishraffa' | 'nakta' | 'yamaya' | 'shubh';
+  significance: string;
+  planets: Planet[];
+}
+
+export interface PrashnaChartResult {
+  question: string;
+  timestamp: string;
+  prashnaLagna: ZodiacSign;
+  lagnaDegree: number;
+  karyeshPlanet: Planet;
+  lagneshPlanet: Planet;
+  moonSign: ZodiacSign;
+  moonNakshatra: string;
+  verdict: PrashnaVerdict;
+  timingEstimate: string;
+  explanation: string;
+  yogas: PrashnaYoga[];
+  remedy: string;
+}
+
+export const castPrashnaSchema = z.object({
+  question: z.string().trim().min(3).max(500),
+  category: z.enum(['career', 'relationship', 'wealth', 'travel', 'health', 'general']).default('general'),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  timezone: z.string().optional(),
+  birthProfileId: z.string().optional(),
+});
+export type CastPrashnaInput = z.infer<typeof castPrashnaSchema>;
+
+export interface DailyDispatchResult {
+  date: string;
+  cosmicScore: number;
+  tithi: string;
+  nakshatra: string;
+  activeHora: string;
+  favorableActivities: string[];
+  abhijitMuhurat: string;
+  rahuKaal: string;
+  transitSummary: string;
+  dailySadhanaMantra: {
+    sanskrit: string;
+    transliteration: string;
+    meaning: string;
+    targetChants: number;
+  };
+  audioBrief: {
+    title: string;
+    durationSeconds: number;
+    script: string;
+  };
+}
+
+export interface DashaPeriodDetail {
+  planet: Planet;
+  sanskritName: string;
+  startDate: string;
+  endDate: string;
+  durationYears: number;
+  nature: 'BENEFIC' | 'MALEFIC' | 'NEUTRAL';
+  auspiciousScore: number;
+  focusKeywords: string[];
+  effectsSummary: string;
+  recommendedUpays: string[];
+  isCurrent: boolean;
+}
+
+export interface DashaTimelineResult {
+  birthProfileId: string;
+  moonNakshatra: string;
+  totalCycleYears: number;
+  currentMahadasha: DashaPeriodDetail;
+  currentAntardasha: DashaPeriodDetail;
+  currentPratyantardasha: DashaPeriodDetail;
+  allMahadashas: DashaPeriodDetail[];
+  planetaryBlessings: string;
+}
+
+export const dashaTimelineQuerySchema = z.object({
+  birthProfileId: z.string().trim().min(1).optional(),
+});
+export type DashaTimelineQuery = z.infer<typeof dashaTimelineQuerySchema>;

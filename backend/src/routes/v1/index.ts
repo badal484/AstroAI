@@ -4,6 +4,7 @@ import { adminRouter } from '../../modules/admin';
 import { locationRouter } from '../../modules/location';
 import { birthProfileRouter } from '../../modules/birthProfiles';
 import { astrologyRouter } from '../../modules/astrology';
+import { horoscopeRouter } from '../../modules/horoscope';
 import { chatRouter } from '../../modules/chat';
 import { pricingRouter } from '../../modules/pricing';
 import { walletRouter } from '../../modules/wallet';
@@ -13,6 +14,7 @@ import { reportRouter } from '../../modules/reports';
 import { notificationRouter, adminNotificationRouter } from '../../modules/notifications';
 import { promotionRoutes, adminPromotionRoutes } from '../../modules/promotions';
 import { analyticsRoutes } from '../../modules/analytics';
+import { pujaRouter } from '../../modules/puja';
 import { healthRouter } from './health.routes';
 
 /**
@@ -27,6 +29,8 @@ v1Router.use(authRouter);
 v1Router.use(locationRouter);
 v1Router.use(birthProfileRouter);
 v1Router.use(astrologyRouter);
+v1Router.use(horoscopeRouter);
+v1Router.use('/puja', pujaRouter);
 v1Router.use(chatRouter);
 v1Router.use(pricingRouter);
 v1Router.use(walletRouter);

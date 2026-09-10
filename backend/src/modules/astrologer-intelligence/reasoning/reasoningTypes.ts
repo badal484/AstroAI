@@ -5,7 +5,7 @@
 
 export interface AstrologicalFactor {
   factor: string;
-  category?: 'PLANET_DIGNITY' | 'HOUSE_LORD' | 'DASHA_PERIOD' | 'TRANSIT_GOCHAR' | 'YOGA' | 'DRISHTI_ASPECT' | 'NAKSHATRA';
+  category?: 'PLANET_DIGNITY' | 'HOUSE_LORD' | 'DASHA_PERIOD' | 'TRANSIT_GOCHAR' | 'YOGA' | 'DRISHTI_ASPECT' | 'NAKSHATRA' | 'DIVISIONAL_CHART';
   influence: 'SUPPORTIVE' | 'CHALLENGING' | 'NEUTRAL';
   weight?: number; // 1 to 5 scale of astrological importance
   description: string;
@@ -36,6 +36,8 @@ export interface AstrologicalInterpretation {
   astrologyEngineVersion: string;
 }
 
+import type { ShastraAphorism } from './shastraPramana';
+
 export interface StructuredAstrologyReasoning {
   topic: string;
   confidence: 'HIGH' | 'MODERATE' | 'LOW';
@@ -45,4 +47,5 @@ export interface StructuredAstrologyReasoning {
   uncertaintyNotes: string[];
   userFacingExplanationSummary: string;
   interpretation?: AstrologicalInterpretation;
+  shastraPramana?: ShastraAphorism | null;
 }

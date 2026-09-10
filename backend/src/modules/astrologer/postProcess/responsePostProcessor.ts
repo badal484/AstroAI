@@ -43,6 +43,29 @@ function stripRepeatedOpener(
   return remainder.length > 0 ? capitalizeFirstLetter(remainder) : current;
 }
 
+const CHATBOT_PREAMBLE_PATTERNS = [
+  /^(Certainly!|Sure!|Of course!|Greetings!|Hello!)\s*/i,
+  /^As an AI (astrologer|assistant)[^.!?]*[.!?]\s*/i,
+  /^Based on (the|your) (astrological|chart|birth|provided) (data|details|information)[^.!?]*[.!?]\s*/i,
+  /^Here is (your|the) (astrological|reading|horoscope)[^.!?]*:\s*/i,
+];
+
+const CHATBOT_CLOSING_PATTERNS = [
+  /\s*(I hope this helps!|Hope this helps!|Let me know if you have any questions!?|Feel free to ask.*)$/i,
+  /\s*If you need further (clarity|assistance|help), (just ask|let me know)\.?$/i,
+];
+
+function stripChatbotArtifacts(text: string): string {
+  let cleaned = text;
+  for (const pattern of CHATBOT_PREAMBLE_PATTERNS) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+  for (const pattern of CHATBOT_CLOSING_PATTERNS) {
+    cleaned = cleaned.replace(pattern, '');
+  }
+  return cleaned.trim();
+}
+
 function collapseWhitespace(text: string): string {
   return text
     .replace(/[ \t]+/g, ' ')
@@ -55,5 +78,6 @@ export function postProcessResponse(
   previousAssistantMessage: string | null,
 ): string {
   const withoutRepeatedOpener = stripRepeatedOpener(responseText, previousAssistantMessage);
-  return collapseWhitespace(withoutRepeatedOpener);
+  const withoutArtifacts = stripChatbotArtifacts(withoutRepeatedOpener);
+  return collapseWhitespace(withoutArtifacts);
 }

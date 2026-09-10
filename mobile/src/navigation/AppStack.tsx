@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { MainTabNavigator } from './MainTabNavigator';
 import { HomeScreen } from '../screens/HomeScreen';
 import { BirthProfileFormScreen } from '../screens/birthProfiles/BirthProfileFormScreen';
 import { BirthProfileListScreen } from '../screens/birthProfiles/BirthProfileListScreen';
@@ -14,6 +15,11 @@ import { NotificationPreferencesScreen } from '../screens/notifications/Notifica
 import { ReferralScreen } from '../screens/promotions/ReferralScreen';
 import { KundliExplorerScreen } from '../screens/astrology/KundliExplorerScreen';
 import { CompatibilityScreen } from '../screens/astrology/CompatibilityScreen';
+import { DoshaAnalysisScreen } from '../screens/reports/DoshaAnalysisScreen';
+import { PalmScannerScreen } from '../screens/palmistry/PalmScannerScreen';
+import { PujaCatalogScreen } from '../screens/puja/PujaCatalogScreen';
+import { PujaOrderHistoryScreen } from '../screens/puja/PujaOrderHistoryScreen';
+import { DashaTimelineScreen } from '../screens/astrology/DashaTimelineScreen';
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import { colors } from '../theme';
 
@@ -33,6 +39,11 @@ export type AppStackParamList = {
   Referral: undefined;
   KundliExplorer: undefined;
   Compatibility: undefined;
+  DoshaAnalysis: undefined;
+  PalmScanner: undefined;
+  PujaCatalog: undefined;
+  PujaOrderHistory: undefined;
+  DashaTimeline: undefined;
   Settings: undefined;
 };
 
@@ -58,7 +69,7 @@ export function AppStack() {
     >
       <Stack.Screen
         name="Home"
-        component={HomeScreen}
+        component={MainTabNavigator}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -83,7 +94,7 @@ export function AppStack() {
       <Stack.Screen
         name="Chat"
         component={ChatScreen}
-        options={({ route }) => ({ title: route.params.title || 'Acharya Vashishta' })}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Wallet"
@@ -134,6 +145,31 @@ export function AppStack() {
         name="Compatibility"
         component={CompatibilityScreen}
         options={{ title: 'Kundli Milan (36 Guna)' }}
+      />
+      <Stack.Screen
+        name="DoshaAnalysis"
+        component={DoshaAnalysisScreen}
+        options={{ title: 'Vedic Dosha Scanner' }}
+      />
+      <Stack.Screen
+        name="PalmScanner"
+        component={PalmScannerScreen}
+        options={{ title: 'AI Palmistry Scanner' }}
+      />
+      <Stack.Screen
+        name="PujaCatalog"
+        component={PujaCatalogScreen}
+        options={{ title: 'Devasthanam Sanctuary' }}
+      />
+      <Stack.Screen
+        name="PujaOrderHistory"
+        component={PujaOrderHistoryScreen}
+        options={{ title: 'My Sacred Bookings' }}
+      />
+      <Stack.Screen
+        name="DashaTimeline"
+        component={DashaTimelineScreen}
+        options={{ title: 'Vimshottari Dasha' }}
       />
       <Stack.Screen
         name="Settings"

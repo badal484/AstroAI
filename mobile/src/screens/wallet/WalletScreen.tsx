@@ -97,7 +97,7 @@ export function WalletScreen() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.gold} />
+        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
       }
     >
       {/* Balance Summary Card */}
@@ -251,16 +251,6 @@ export function WalletScreen() {
               </Text>
             </View>
             <View style={styles.guideRow}>
-              <Text style={styles.guideLabel}>Live Voice Consultation</Text>
-              <Text style={styles.guideValue}>
-                {pricingData?.voice?.creditsPerUnit ?? 5} Credits / min
-              </Text>
-            </View>
-            <View style={styles.guideRow}>
-              <Text style={styles.guideLabel}>Voice Free Allowance</Text>
-              <Text style={styles.guideValue}>First {pricingData?.voice?.freeInitialSeconds ?? 30}s complimentary</Text>
-            </View>
-            <View style={styles.guideRow}>
               <Text style={styles.guideLabel}>Welcome Signup Credits</Text>
               <Text style={styles.guideValue}>
                 {pricingData?.freeCreditsOnSignup ?? 10} Credits included
@@ -360,7 +350,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: spacing.md,
-    paddingBottom: spacing.xxxl,
+    paddingBottom: 90,
     gap: spacing.md,
   },
   balanceCard: {
@@ -368,7 +358,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   balanceHeader: {
     flexDirection: 'row',
@@ -379,22 +374,23 @@ const styles = StyleSheet.create({
   balanceSubtitle: {
     ...typography.overline,
     fontSize: 10,
-    color: colors.textGold,
+    color: colors.primary,
+    fontWeight: '700',
     letterSpacing: 0.8,
   },
   currencyPill: {
-    backgroundColor: colors.backgroundHighlight,
+    backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: colors.borderGold,
-    borderRadius: radius.sm,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
+    borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: 3,
   },
   currencyPillText: {
     ...typography.caption,
     fontSize: 10,
     fontWeight: '700',
-    color: colors.goldLight,
+    color: colors.primary,
   },
   balanceRow: {
     flexDirection: 'row',
@@ -437,7 +433,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.backgroundElevated,
     borderRadius: radius.md,
     padding: 3,
     borderWidth: 1,
@@ -451,9 +447,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
   tabActive: {
-    backgroundColor: colors.backgroundCardElevated,
-    borderWidth: 1,
-    borderColor: colors.borderGold,
+    backgroundColor: colors.primary,
   },
   tabText: {
     ...typography.caption,
@@ -461,7 +455,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   tabTextActive: {
-    color: colors.goldLight,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   sectionContainer: {
     gap: spacing.xs,
@@ -488,21 +483,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderSubtle,
     position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   packBadge: {
     position: 'absolute',
     top: spacing.md,
     right: spacing.md,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primaryLight,
+    borderWidth: 1,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
     paddingHorizontal: spacing.xs + 2,
     paddingVertical: 2,
-    borderRadius: radius.sm,
+    borderRadius: radius.full,
   },
   packBadgeText: {
     ...typography.caption,
     fontSize: 9,
     fontWeight: '700',
-    color: colors.textInverse,
+    color: colors.primary,
     textTransform: 'uppercase',
   },
   packName: {
@@ -537,7 +539,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   buyButton: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,
     alignItems: 'center',
@@ -547,7 +549,7 @@ const styles = StyleSheet.create({
   buyButtonText: {
     ...typography.body,
     fontWeight: '700',
-    color: colors.textInverse,
+    color: '#FFFFFF',
   },
   guideContainer: {
     gap: spacing.sm,
@@ -563,7 +565,7 @@ const styles = StyleSheet.create({
   guideCardTitle: {
     ...typography.h3,
     fontSize: 14,
-    color: colors.goldLight,
+    color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   guideRow: {
@@ -605,7 +607,7 @@ const styles = StyleSheet.create({
   reportFinalPrice: {
     ...typography.caption,
     fontWeight: '700',
-    color: colors.goldLight,
+    color: colors.primary,
   },
   reportDiscountBadge: {
     ...typography.caption,

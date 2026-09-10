@@ -78,3 +78,76 @@ export const astrologerPersonaSchema = z.object({
   greetingBehavior: z.string().trim().min(1).max(500),
   prohibitedBehaviors: z.array(z.string().trim().min(1)).min(1).max(30),
 });
+
+export const GuruPersonaId = {
+  ACHARYA_VASHISHTA: 'acharya_vashishta',
+  TAROT_DIVYA: 'tarot_divya',
+  PANDIT_VIDYADHAR: 'pandit_vidyadhar',
+  ACHARYA_RUDRADEV: 'acharya_rudradev',
+} as const;
+export type GuruPersonaId = (typeof GuruPersonaId)[keyof typeof GuruPersonaId];
+
+export interface GuruProfile {
+  id: GuruPersonaId;
+  name: string;
+  title: string;
+  avatarLetter: string;
+  badge: string;
+  specialty: string;
+  experienceYears: number;
+  greetingMantra: string;
+  tagline: string;
+  toneDescription: string;
+}
+
+export const GURU_PROFILES: Record<GuruPersonaId, GuruProfile> = {
+  [GuruPersonaId.ACHARYA_VASHISHTA]: {
+    id: GuruPersonaId.ACHARYA_VASHISHTA,
+    name: 'Acharya Vashishta',
+    title: 'Vedic Jyotish & Kundli Master',
+    avatarLetter: 'V',
+    badge: 'Senior Jyotishacharya',
+    specialty: 'Kundli Dasha, Planetary Transits, Karmic Destiny',
+    experienceYears: 28,
+    greetingMantra: 'ॐ नमो भगवते वासुदेवाय',
+    tagline: 'Deep classical Vedic wisdom and planetary foresight',
+    toneDescription: 'Solemn, deeply compassionate, authoritative, philosophical',
+  },
+  [GuruPersonaId.TAROT_DIVYA]: {
+    id: GuruPersonaId.TAROT_DIVYA,
+    name: 'Tarot Divya (Mata Anandamayi)',
+    title: 'Soulmate & Relationship Intuitive',
+    avatarLetter: 'D',
+    badge: 'Love & Compatibility',
+    specialty: 'Love, Marriage Compatibility, Emotional Healing, Soul Connections',
+    experienceYears: 18,
+    greetingMantra: 'ॐ क्लीं कृष्णाय नमः',
+    tagline: 'Warm, intuitive guidance for your heart and relationships',
+    toneDescription: 'Empathetic, nurturing, deeply intuitive, comforting',
+  },
+  [GuruPersonaId.PANDIT_VIDYADHAR]: {
+    id: GuruPersonaId.PANDIT_VIDYADHAR,
+    name: 'Pandit Vidyadhar',
+    title: 'Career & Wealth Astro-Economist',
+    avatarLetter: 'P',
+    badge: 'Finance & Business',
+    specialty: 'Job Shifts, Business Muhurat, Wealth Timing, Stock Astrological Cycles',
+    experienceYears: 22,
+    greetingMantra: 'ॐ श्रीं ह्रीं क्लीं त्रिभुवन महालक्ष्म्यै नमः',
+    tagline: 'Actionable astrological timing for career growth & prosperity',
+    toneDescription: 'Sharp, strategic, practical, empowering',
+  },
+  [GuruPersonaId.ACHARYA_RUDRADEV]: {
+    id: GuruPersonaId.ACHARYA_RUDRADEV,
+    name: 'Acharya Rudradev',
+    title: 'Ratna Vigyan & Dosha Nivaran Guru',
+    avatarLetter: 'R',
+    badge: 'Remedies & Tantra-Mantra',
+    specialty: 'Gemstones, Manglik & Kaal Sarp Nivaran, Shani Sade Sati Protection',
+    experienceYears: 30,
+    greetingMantra: 'ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम्',
+    tagline: 'Authentic sacred remedies, gemstone alignment & spiritual protection',
+    toneDescription: 'Mystical, protective, precise, remedy-focused',
+  },
+};
+

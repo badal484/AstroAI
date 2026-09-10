@@ -25,12 +25,10 @@ import type { ConversationDocument } from './conversation.model';
 // window (which then applies its own tighter windowing on top — CLAUDE.md
 // §22 layered memory, applied at two levels).
 const HISTORY_WINDOW = 20;
-// Word-chunk size and pacing for the client-facing "typing" replay — see
-// the module-level comment on `replayAsChunks` for why this replays an
-// already-persisted, already-validated response rather than streaming raw
-// provider tokens.
-const REPLAY_WORDS_PER_CHUNK = 3;
-const REPLAY_DELAY_MS = 45;
+// Word-chunk size and pacing for client-facing typing feel:
+// 1 word per chunk at 75ms delay creates a smooth, natural real-time typing flow
+const REPLAY_WORDS_PER_CHUNK = 1;
+const REPLAY_DELAY_MS = 75;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -245,26 +243,39 @@ async function runGeneration(
 
     chatSocket.consultationPhase(conversationId, assistantMessageId, 'GENERATING');
 
+    let streamedAnyChunk = false;
     const result = await generateAstrologerResponse({
       userId,
       conversationId,
       birthProfileId: conversation.birthProfileId ? conversation.birthProfileId.toString() : null,
+      personaId: (conversation.personaId as any) ?? undefined,
       conversationHistory,
       userMessage: triggerUserMessage.content,
       userName: user.name,
       preferredLanguage: toSupportedLanguage(user.language),
       requestId: randomUUID(),
+      onChunk: (delta: string) => {
+        if (!streamedAnyChunk) {
+          streamedAnyChunk = true;
+          chatSocket.consultationPhase(conversationId, assistantMessageId, 'STREAMING');
+        }
+        chatSocket.messageChunk(conversationId, assistantMessageId, delta);
+      },
     });
 
-    // Persisted in full BEFORE any client-facing delivery begins — see
-    // module doc comment: this is what makes app termination / a dropped
-    // socket connection during "streaming" safe. The client-visible typing
-    // animation below is replaying content that already safely exists.
+    if (!streamedAnyChunk && result.responseText) {
+      chatSocket.consultationPhase(conversationId, assistantMessageId, 'STREAMING');
+      await replayAsChunks(conversationId, assistantMessageId, result.responseText);
+    }
+
     const updated = await messageRepository.update(assistantMessageId, {
       content: result.responseText,
       status: MessageStatus.COMPLETE,
       intent: result.intent,
       language: result.language,
+      quickReplyChips: result.quickReplyChips ?? null,
+      interactiveWidget: result.interactiveWidget ?? null,
+      audioDurationSeconds: result.audioDurationSeconds ?? null,
       aiSession: {
         requestId: result.meta.requestId,
         provider: result.meta.provider,
@@ -276,8 +287,6 @@ async function runGeneration(
     });
     await conversationService.touchLastMessageAt(conversationId, result.language);
 
-    chatSocket.consultationPhase(conversationId, assistantMessageId, 'STREAMING');
-    await replayAsChunks(conversationId, assistantMessageId, result.responseText);
     chatSocket.consultationPhase(conversationId, assistantMessageId, 'COMPLETED');
     chatSocket.messageComplete(conversationId, toChatMessage(updated!));
 

@@ -61,7 +61,7 @@ export function BirthProfileListScreen() {
   if (profilesQuery.isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.gold} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   retryLink: {
     ...typography.caption,
-    color: colors.goldLight,
+    color: colors.primary,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -190,15 +190,17 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.md,
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: colors.indigoMuted,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
   },
   emptyIconLetter: {
     fontSize: 22,
+    color: colors.primary,
+    fontWeight: '700',
   },
   emptyTitle: {
     ...typography.h3,
@@ -238,9 +240,9 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   confidenceBadge: {
-    backgroundColor: colors.backgroundHighlight,
+    backgroundColor: colors.indigoMuted,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
     borderRadius: radius.sm,
     paddingHorizontal: spacing.xs,
     paddingVertical: 2,
@@ -248,7 +250,7 @@ const styles = StyleSheet.create({
   confidenceText: {
     ...typography.caption,
     fontSize: 10,
-    color: colors.goldLight,
+    color: colors.primary,
     fontWeight: '600',
   },
   cardArrow: {
@@ -265,7 +267,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   addButton: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     alignItems: 'center',
     margin: spacing.md,

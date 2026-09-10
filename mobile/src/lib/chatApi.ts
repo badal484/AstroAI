@@ -3,7 +3,9 @@ import type {
   Conversation,
   CreateConversationInput,
   FeedbackInput,
+  GuruPersonaId,
   PaginatedResult,
+  ProactiveGreetingResult,
   SendMessageInput,
   SupportedLanguage,
 } from '@astroai/shared-types';
@@ -84,5 +86,19 @@ export function getSuggestedQuestions(
   const query = language ? `?language=${language}` : '';
   return apiRequest(
     `/api/v1/conversations/${conversationId}/suggested-questions${query}`,
+  );
+}
+
+export function getProactiveGreeting(
+  conversationId: string,
+  language?: SupportedLanguage,
+  personaId?: GuruPersonaId,
+): Promise<ProactiveGreetingResult> {
+  const params = new URLSearchParams();
+  if (language) params.set('language', language);
+  if (personaId) params.set('personaId', personaId);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return apiRequest(
+    `/api/v1/conversations/${conversationId}/proactive-greeting${query}`,
   );
 }

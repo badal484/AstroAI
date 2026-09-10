@@ -102,7 +102,7 @@ export function LoginScreen() {
           </View>
           <View style={styles.pillarRow}>
             <View style={styles.pillarIndicator} />
-            <Text style={styles.pillarText}>Live Voice & AI Chat Astrologers</Text>
+            <Text style={styles.pillarText}>Verified Vedic Acharyas & Instant AI</Text>
           </View>
           <View style={styles.pillarRow}>
             <View style={styles.pillarIndicator} />
@@ -183,9 +183,9 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.backgroundHighlight,
+    backgroundColor: colors.primaryLight,
     borderWidth: 2,
-    borderColor: colors.gold,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   emblemText: {
     fontSize: 32,
     fontWeight: '800',
-    color: colors.gold,
+    color: colors.primary,
   },
   title: {
     ...typography.display,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     ...typography.caption,
-    color: colors.goldLight,
+    color: colors.textSecondary,
     marginTop: spacing.xs,
     letterSpacing: 0.5,
   },
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
   },
   pillarText: {
     ...typography.bodySecondary,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     alignItems: 'center',
     gap: spacing.sm,
     marginBottom: spacing.md,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   button: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.full,
@@ -273,16 +273,16 @@ const styles = StyleSheet.create({
   googleIcon: {
     fontSize: 16,
     fontWeight: '900',
-    color: colors.textInverse,
+    color: '#FFFFFF',
   },
   buttonText: {
     ...typography.body,
     fontWeight: '700',
-    color: colors.textInverse,
+    color: '#FFFFFF',
   },
   devButton: {
-    backgroundColor: 'rgba(212, 175, 55, 0.15)',
-    borderColor: colors.gold,
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary,
     borderWidth: 1,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   devButtonText: {
     ...typography.caption,
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
   error: {
     ...typography.caption,

@@ -1,7 +1,9 @@
 import type {
   ConversationRole,
   IntentCategory,
+  InteractiveWidget,
   MessageStatus,
+  QuickReplyChip,
   SupportedLanguage,
 } from '@astroai/shared-types';
 import { MessageStatus as MessageStatusValue } from '@astroai/shared-types';
@@ -21,6 +23,10 @@ export interface CreateMessageData {
   status: MessageStatus;
   clientMessageId?: string;
   regeneratedFromMessageId?: string;
+  quickReplyChips?: QuickReplyChip[] | null;
+  interactiveWidget?: InteractiveWidget | null;
+  audioUrl?: string | null;
+  audioDurationSeconds?: number | null;
 }
 
 export interface UpdateMessageData {
@@ -31,6 +37,10 @@ export interface UpdateMessageData {
   errorCode?: string | null;
   errorMessage?: string | null;
   feedback?: { rating: string; comment: string | null; createdAt: Date };
+  quickReplyChips?: QuickReplyChip[] | null;
+  interactiveWidget?: InteractiveWidget | null;
+  audioUrl?: string | null;
+  audioDurationSeconds?: number | null;
   aiSession?: {
     requestId: string;
     provider: string | null;

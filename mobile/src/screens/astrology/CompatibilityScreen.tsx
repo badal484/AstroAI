@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
-    paddingBottom: spacing.xxxl,
+    paddingBottom: 90,
     gap: spacing.md,
   },
   topBar: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   vsText: {
     ...typography.caption,
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
   calcFooter: {
     flexDirection: 'row',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   calcButton: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     borderRadius: radius.md,
     paddingVertical: spacing.xs + 2,
     paddingHorizontal: spacing.md,
@@ -194,24 +194,29 @@ const styles = StyleSheet.create({
   calcButtonText: {
     ...typography.caption,
     fontWeight: '700',
-    color: colors.textInverse,
+    color: '#FFFFFF',
   },
   reportCta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: colors.backgroundCard,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     borderRadius: radius.md,
     padding: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   reportCtaTag: {
     width: 32,
     height: 32,
     borderRadius: radius.sm,
-    backgroundColor: colors.backgroundCard,
+    backgroundColor: colors.primaryLight,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -220,7 +225,7 @@ const styles = StyleSheet.create({
     ...typography.caption,
     fontSize: 10,
     fontWeight: '700',
-    color: colors.gold,
+    color: colors.primary,
   },
   reportCtaTextContainer: {
     flex: 1,

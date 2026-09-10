@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   },
   doneLink: {
     ...typography.caption,
-    color: colors.goldLight,
+    color: colors.primary,
     fontWeight: '600',
     textAlign: 'right',
     marginTop: spacing.xs,
@@ -491,8 +491,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   confidenceChipSelected: {
-    backgroundColor: colors.backgroundHighlight,
-    borderColor: colors.borderGold,
+    backgroundColor: colors.indigoMuted,
+    borderColor: colors.primary,
   },
   confidenceChipText: {
     ...typography.caption,
@@ -500,11 +500,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   confidenceChipTextSelected: {
-    color: colors.goldLight,
+    color: colors.primary,
     fontWeight: '700',
   },
   submitButton: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     borderRadius: radius.md,
     paddingVertical: spacing.md,
     alignItems: 'center',

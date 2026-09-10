@@ -4,14 +4,17 @@ import type {
   CreateConversationInput,
   FeedbackInput,
   PaginationQuery,
+  ProactiveGreetingQuery,
   SendMessageInput,
   SuggestedQuestionsQuery,
 } from '@astroai/shared-types';
-import { SupportedLanguage } from '@astroai/shared-types';
+import { GuruPersonaId, SupportedLanguage } from '@astroai/shared-types';
 import { asyncHandler } from '../../shared/asyncHandler';
 import { conversationService } from './conversation.service';
 import { chatService } from './chat.service';
 import { getSuggestedQuestions } from './suggestedQuestions';
+import { proactiveGreetingEngine } from '../astrologer-intelligence/persona/proactiveGreetingEngine';
+import { userService } from '../users';
 
 function ok<T>(req: Request, res: Response, data: T, status = 200): void {
   const body: ApiSuccessResponse<T> = { success: true, data, requestId: req.requestId };
@@ -47,6 +50,20 @@ export const chatController = {
     const language = languageOverride ?? conversation.language ?? SupportedLanguage.ENGLISH;
     const questions = getSuggestedQuestions(conversation.birthProfileId !== null, language);
     ok(req, res, { questions }, 200);
+  }),
+
+  proactiveGreeting: asyncHandler(async (req: Request, res: Response) => {
+    const conversation = await conversationService.getById(req.user!.id, req.params.id as string);
+    const user = await userService.getById(req.user!.id);
+    const { language: languageOverride, personaId: personaOverride } =
+      req.query as unknown as ProactiveGreetingQuery;
+    const personaId =
+      personaOverride ??
+      (conversation.personaId as GuruPersonaId) ??
+      GuruPersonaId.ACHARYA_VASHISHTA;
+    const language = languageOverride ?? conversation.language ?? SupportedLanguage.ENGLISH;
+    const greeting = proactiveGreetingEngine.generate(personaId, language, user?.name);
+    ok(req, res, greeting, 200);
   }),
 
   listMessages: asyncHandler(async (req: Request, res: Response) => {

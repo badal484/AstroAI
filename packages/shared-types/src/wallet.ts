@@ -27,6 +27,7 @@ export const WalletTransactionSource = {
   REFERRAL_REWARD: 'referral_reward',
   PROMO_COUPON: 'promo_coupon',
   SUBSCRIPTION: 'subscription',
+  PUJA: 'puja',
 } as const;
 export type WalletTransactionSource = (typeof WalletTransactionSource)[keyof typeof WalletTransactionSource];
 

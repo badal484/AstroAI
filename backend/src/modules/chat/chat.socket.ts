@@ -53,7 +53,9 @@ export function initChatSocket(httpServer: HttpServer): ChatIOServer {
   io.use((socket, next) => {
     void (async () => {
       try {
-        const token = socket.handshake.auth.token as string | undefined;
+        const token =
+          (socket.handshake.auth?.token as string | undefined) ||
+          (socket.handshake.headers?.authorization?.replace(/^Bearer\s+/i, '') as string | undefined);
         if (!token) throw new Error('missing token');
 
         const payload = verifyAccessToken(token, env.JWT_ACCESS_SECRET);
@@ -62,13 +64,16 @@ export function initChatSocket(httpServer: HttpServer): ChatIOServer {
 
         socket.data = { userId: user._id.toString() };
         next();
-      } catch {
+      } catch (err) {
+        logger.warn({ err }, 'Socket handshake authentication failed');
         next(new Error('unauthorized'));
       }
     })();
   });
 
   io.on('connection', (socket) => {
+    logger.info({ socketId: socket.id, userId: socket.data.userId }, 'Chat socket connected');
+
     socket.on('join_conversation', (payload) => {
       void (async () => {
         const conversation = await conversationRepository.findByIdForUser(
@@ -76,10 +81,12 @@ export function initChatSocket(httpServer: HttpServer): ChatIOServer {
           socket.data.userId,
         );
         if (!conversation) {
+          logger.warn({ conversationId: payload.conversationId, userId: socket.data.userId }, 'Failed to join conversation room: not found or unowned');
           socket.emit('error', { message: 'Conversation not found' });
           return;
         }
         await socket.join(conversationRoom(payload.conversationId));
+        logger.info({ conversationId: payload.conversationId, socketId: socket.id }, 'Joined conversation room');
       })();
     });
 

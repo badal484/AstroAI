@@ -65,13 +65,13 @@ export function NotificationCenterScreen() {
         return { color: colors.success, bg: colors.successBackground };
       case 'horoscope':
       case 'transit':
-        return { color: colors.gold, bg: colors.backgroundHighlight };
+        return { color: colors.primary, bg: colors.indigoMuted };
       case 'consultation':
-        return { color: colors.goldLight, bg: colors.backgroundHighlight };
+        return { color: colors.indigoLight, bg: colors.indigoMuted };
       case 'marketing':
-        return { color: colors.goldDark, bg: colors.backgroundHighlight };
+        return { color: colors.primary, bg: colors.indigoMuted };
       default:
-        return { color: colors.textSecondary, bg: colors.backgroundCardElevated };
+        return { color: colors.textSecondary, bg: colors.backgroundInput };
     }
   };
 
@@ -131,7 +131,7 @@ export function NotificationCenterScreen() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={colors.gold} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -143,8 +143,8 @@ export function NotificationCenterScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={colors.gold}
-              colors={[colors.gold]}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
             />
           }
           ListEmptyComponent={
@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
     borderRadius: radius.sm,
-    backgroundColor: colors.backgroundHighlight,
+    backgroundColor: colors.indigoMuted,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
   },
   settingsButtonText: {
     ...typography.caption,
-    color: colors.goldLight,
+    color: colors.primary,
     fontWeight: '600',
   },
   centerContainer: {
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   actionLinkText: {
     ...typography.caption,
     fontWeight: '600',
-    color: colors.goldLight,
+    color: colors.primary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -274,15 +274,17 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.md,
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: colors.indigoMuted,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: colors.borderSubtle,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
   },
   emptyBadgeLetter: {
     fontSize: 22,
+    color: colors.primary,
+    fontWeight: '700',
   },
   emptyTitle: {
     ...typography.h3,

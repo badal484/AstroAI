@@ -152,31 +152,35 @@ const styles = StyleSheet.create({
   scoreBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.backgroundCardElevated,
+    backgroundColor: colors.primaryLight,
     borderRadius: radius.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.borderGold,
+    borderColor: 'rgba(79, 70, 229, 0.2)',
     gap: spacing.md,
   },
   scoreRing: {
     width: 64,
     height: 64,
     borderRadius: radius.md,
-    backgroundColor: colors.backgroundCard,
-    borderWidth: 1.5,
-    borderColor: colors.gold,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
   scoreNumber: {
     ...typography.h1,
-    color: colors.goldLight,
+    color: colors.primary,
     lineHeight: 26,
   },
   scoreMax: {
     ...typography.caption,
-    color: colors.textGold,
+    color: colors.textSecondary,
     fontSize: 10,
   },
   scoreInfo: {
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
   verdictText: {
     ...typography.h3,
     fontSize: 15,
-    color: colors.goldLight,
+    color: colors.primary,
   },
   verdictExcellent: {
     color: colors.success,
@@ -196,7 +200,7 @@ const styles = StyleSheet.create({
   percentageText: {
     ...typography.caption,
     fontWeight: '700',
-    color: colors.textGold,
+    color: colors.primary,
     marginVertical: 2,
   },
   summaryText: {
@@ -245,7 +249,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   table: {
-    backgroundColor: colors.backgroundElevated,
+    backgroundColor: colors.backgroundCard,
     borderRadius: radius.md,
     overflow: 'hidden',
     borderWidth: 1,
@@ -253,7 +257,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderBottomWidth: 1,
@@ -282,10 +286,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs + 2,
     paddingHorizontal: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.03)',
+    borderBottomColor: colors.borderSubtle,
   },
   tableRowAlt: {
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: colors.backgroundElevated,
   },
   kootaName: {
     ...typography.caption,
@@ -295,7 +299,7 @@ const styles = StyleSheet.create({
   kootaSanskrit: {
     ...typography.caption,
     fontSize: 10,
-    color: colors.textGold,
+    color: colors.primary,
   },
   significanceText: {
     ...typography.caption,

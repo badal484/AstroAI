@@ -3,7 +3,7 @@ import type { TimingWindow } from './reasoningTypes';
 
 export const timingEngine = {
   calculateTimingWindows(context: FilteredAstrologyContext): TimingWindow[] {
-    const { topic, userAge, currentDasha, timeConfidence, available } = context;
+    const { topic, userAge, currentDasha, timeConfidence, available, evidencePacket } = context;
     const windows: TimingWindow[] = [];
 
     const currentYear = new Date().getFullYear();
@@ -16,6 +16,44 @@ export const timingEngine = {
         : timeConfidence === 'approximate'
           ? 'MODERATE'
           : 'LOW';
+
+    // 0. High-precision Timing from Round 5 Evidence Packet if available
+    if (evidencePacket?.timing) {
+      const epTiming = evidencePacket.timing;
+      const favorableLevel =
+        epTiming.activationLevel === 'VERY_STRONG' || epTiming.activationLevel === 'STRONG'
+          ? 'HIGH'
+          : epTiming.activationLevel === 'MODERATE'
+            ? 'MODERATE'
+            : 'NEUTRAL';
+
+      const timingConf =
+        epTiming.activationLevel === 'INSUFFICIENT' || epTiming.activationLevel === 'WEAK'
+          ? 'LOW'
+          : baseConfidence;
+
+      let indicator = `Dasha Support: ${epTiming.dashaSupport} | Transit Support: ${epTiming.transitSupport}`;
+      if (topic === 'CAREER' || topic === 'JOB_CHANGE') {
+        indicator = `10th house (Karma Bhava) and Dasha period alignment`;
+      } else if (topic === 'MARRIAGE' || topic === 'RELATIONSHIP') {
+        indicator = `7th house (Kalatra Bhava) and Venus/Jupiter dasha alignment`;
+      } else if (topic === 'FINANCE') {
+        indicator = `2nd & 11th houses (Dhana & Labha) stimulation`;
+      }
+
+      windows.push({
+        window: epTiming.primaryWindow,
+        windowStart: epTiming.windowStartISO,
+        windowEnd: epTiming.windowEndISO,
+        planetaryIndicator: indicator,
+        favorableLevel,
+        confidence: timingConf,
+        reason: epTiming.explanation,
+        relevantFactors: [epTiming.dashaSupport, epTiming.transitSupport],
+      });
+
+      return windows;
+    }
 
     // 1. Dasha-anchored timing if dasha dates are available
     if (currentDasha && currentDasha.startDate && currentDasha.endDate) {
