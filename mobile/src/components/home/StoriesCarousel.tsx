@@ -57,12 +57,12 @@ const STORIES: StoryItem[] = [
     action: (nav) => nav.navigate('PalmScanner'),
   },
   {
-    id: 'puja',
-    title: 'Sanctuary',
-    iconName: 'puja',
-    badge: 'TEMPLE',
-    badgeColor: '#D97706',
-    action: (nav) => nav.navigate('PujaCatalog'),
+    id: 'dosha',
+    title: 'Dosha Scan',
+    iconName: 'shield',
+    badge: 'VEDIC',
+    badgeColor: colors.primary,
+    action: (nav) => nav.navigate('DoshaAnalysis'),
   },
   {
     id: 'dasha',

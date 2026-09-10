@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ConversationListScreen } from '../screens/chat/ConversationListScreen';
 import { KundliExplorerScreen } from '../screens/astrology/KundliExplorerScreen';
-import { PujaCatalogScreen } from '../screens/puja/PujaCatalogScreen';
+import { ReportCatalogScreen } from '../screens/reports/ReportCatalogScreen';
 import { WalletScreen } from '../screens/wallet/WalletScreen';
 import { colors, radius } from '../theme';
 import { AstroIcon, type AstroIconName } from '../components/ui/AstroIcon';
@@ -14,7 +14,7 @@ export type MainTabParamList = {
   HomeTab: undefined;
   ConsultTab: undefined;
   KundliTab: undefined;
-  SanctuaryTab: undefined;
+  ReportsTab: undefined;
   WalletTab: undefined;
 };
 
@@ -96,11 +96,11 @@ export function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="SanctuaryTab"
-        component={PujaCatalogScreen}
+        name="ReportsTab"
+        component={ReportCatalogScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} name="Sanctuary" iconName="sanctuary" />
+            <TabIcon focused={focused} name="Reports" iconName="report" />
           ),
         }}
       />

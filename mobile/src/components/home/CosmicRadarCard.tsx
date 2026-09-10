@@ -28,7 +28,7 @@ export function CosmicRadarCard({
   luckyColorHex = '#4F46E5',
   luckyNumber = 3,
   luckyDirection = 'North-East (Ishanya)',
-  gemstone = 'Lapis Lazuli (Sanctuary)',
+  gemstone = 'Yellow Sapphire (Pukhraj)',
   onAskMuhurat,
 }: CosmicRadarProps) {
   const pulseAnim = useRef(new Animated.Value(1)).current;

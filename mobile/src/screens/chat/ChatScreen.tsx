@@ -114,7 +114,7 @@ export function ChatScreen() {
     queryFn: () => getProactiveGreeting(conversationId, language, selectedPersonaId),
     enabled: isEmpty,
   });
-  const cosmicRadar = proactiveGreetingQuery.data?.cosmicRadar;
+  const proactiveGreeting = proactiveGreetingQuery.data;
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -340,9 +340,11 @@ export function ChatScreen() {
               <Text style={styles.mantraPillText}>
                 {selectedPersonaId === GuruPersonaId.ACHARYA_VASHISHTA
                   ? 'Senior Vedic Scholar • Prashna Expert'
-                  : selectedPersonaId === GuruPersonaId.VIDUSHI_KATYAYANI
-                    ? 'Relationship & Milan Specialist'
-                    : 'Career, Finance & Transit Astrologer'}
+                  : selectedPersonaId === GuruPersonaId.TAROT_DIVYA
+                    ? 'Tarot, Relationship & Intuitive Guide'
+                    : selectedPersonaId === GuruPersonaId.PANDIT_VIDYADHAR
+                      ? 'Kundli, Muhurat & Shastra Specialist'
+                      : 'Career, Finance & Transit Astrologer'}
               </Text>
             </View>
 
@@ -371,46 +373,46 @@ export function ChatScreen() {
             </View>
 
             {/* Daily Cosmic Alignment Card */}
-            {cosmicRadar && (
+            {proactiveGreeting && (
               <View style={styles.proactiveCard}>
                 <View style={styles.proactiveCardHeader}>
                   <View style={styles.proactiveCardTitleRow}>
                     <AstroIcon name="sparkle" size={14} color={colors.primary} />
                     <Text style={styles.proactiveCardTitle}>
-                      {cosmicRadar.title}
+                      Dainik Darshan & Guidance
                     </Text>
                   </View>
                   <View style={styles.proactiveLiveBadge}>
                     <View style={styles.proactiveLiveDot} />
-                    <Text style={styles.proactiveLiveText}>
-                      {cosmicRadar.cosmicScore}% Align
-                    </Text>
+                    <Text style={styles.proactiveLiveText}>Live Shastra</Text>
                   </View>
                 </View>
 
                 <Text style={styles.proactiveCardBody}>
-                  {cosmicRadar.summary}
+                  {proactiveGreeting.content}
                 </Text>
 
-                <View style={styles.proactiveChipsSection}>
-                  <Text style={styles.proactiveChipsHeader}>
-                    EXPLORE TODAY'S ALIGNMENT
-                  </Text>
-                  <View style={styles.proactiveChipsWrap}>
-                    {cosmicRadar.quickActions.map((action, idx) => (
-                      <TouchableOpacity
-                        key={idx}
-                        style={styles.proactiveChipBtn}
-                        onPress={() => handleSuggestedQuestion(action.prompt)}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.proactiveChipBtnText}>
-                          {action.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                {proactiveGreeting.quickReplyChips && proactiveGreeting.quickReplyChips.length > 0 && (
+                  <View style={styles.proactiveChipsSection}>
+                    <Text style={styles.proactiveChipsHeader}>
+                      RECOMMENDED INQUIRIES
+                    </Text>
+                    <View style={styles.proactiveChipsWrap}>
+                      {proactiveGreeting.quickReplyChips.map((chip, idx) => (
+                        <TouchableOpacity
+                          key={chip.id || idx}
+                          style={styles.proactiveChipBtn}
+                          onPress={() => handleSuggestedQuestion(chip.query)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.proactiveChipBtnText}>
+                            {chip.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
                   </View>
-                </View>
+                )}
               </View>
             )}
 
